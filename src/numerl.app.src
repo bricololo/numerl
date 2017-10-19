@@ -1,0 +1,12 @@
+{application, numerl,
+ [
+  {description, "An Erlang number theory library"},
+  {vsn, "1"},
+  {modules, [numerl, num_util]},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, []}
+ ]}.
