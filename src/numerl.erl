@@ -54,6 +54,12 @@ ipowm(0, 0, _) -> undefined;
 ipowm(0, _, _) -> 0;
 ipowm(_, 0, _) -> 1;
 ipowm(1, _, _) -> 1;
+ipowm(2, P, M) ->
+	L = case num_util:log2_est(P) of
+			V when V band 7 =:= 0 -> V;
+			K -> K + 8 - K band 7
+		end,
+	i2powm(<<P:L>>, M, 1);
 ipowm(N, P, M) -> ipowm(N, P, M, 1).
 
 % Jacobi-Legendre symbol (M is supposed to be odd
@@ -74,6 +80,20 @@ egcd(A, B, D, U, V, R) ->
 ipow(_, 0, R) -> R;
 ipow(N, P, R) when P band 1 =:= 1 -> ipow(N, P - 1, R * N);
 ipow(N, P, R) -> ipow(N * N, P bsr 1, R).
+
+i2powm(<<0:8, P/binary>>, M, R) ->
+	i2powm(P, M, sqrm(R, M, 8));
+i2powm(<<Y:8>>, M, R) ->
+	C = num_util:p2(Y),
+	F = (1 bsl (Y bsr C)) rem M,
+	(R * sqrm(F, M, C)) rem M;
+i2powm(<<Y:8, P/binary>>, M, R) ->
+	C = num_util:p2(Y),
+	F = (1 bsl (Y bsr C)) rem M,
+	i2powm(P, M, sqrm((R * sqrm(F, M, C)) rem M, M, 8)).
+
+sqrm(R, _, 0) -> R;
+sqrm(R, M, N) -> sqrm((R * R) rem M, M, N - 1).
 
 ipowm(_, 0, _, R) -> R;
 ipowm(N, P, M, R) when P band 1 =:= 1 -> ipowm(N, P - 1, M, (R * N) rem M);
