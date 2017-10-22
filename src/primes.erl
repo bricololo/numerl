@@ -4,6 +4,7 @@
 
 -export([full/1, list/1, pi/1, sieve/3, is_prime/1]).
 -export([rabin_miller/1, rabin_miller/2, lucas/1, lucas/3]).
+-export([possible_prime/1]).
 
 % -export([next/1, prev/1]).
 
