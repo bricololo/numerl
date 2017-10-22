@@ -23,9 +23,9 @@ sieve(Comp, N, P_lim, Lim, Primes, W) ->
 	{Inc, W2} = wheel2:next(W),
 	case val(Comp) of
 		N -> % N is composite
-			sieve(bump(Comp, N), N + Inc, P_lim, Lim, Primes, W2); 
+			sieve(bump(Comp, N), N + Inc, P_lim, Lim, Primes, W2);
 		_ -> % N is indeed prime we need to add the list of its multiple to Comp
-			sieve(add(Comp, N, W), N + Inc, P_lim, Lim, [N |Primes], W2) 
+			sieve(add(Comp, N, W), N + Inc, P_lim, Lim, [N |Primes], W2)
 	end.
 
 % sieving out the composites until we reach the target

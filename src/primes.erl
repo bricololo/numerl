@@ -69,7 +69,7 @@ extend(L, Pr, Lim) ->
 	G = numerl:gcd(Max, Pr),
 	T = case G of 1 -> Pr * Max; _ -> Pr end,
 	R = [X || X <- lists:seq(Max + 2, Lim, 2), numerl:gcd(T, X) =:= 1],
-	case G of 1 -> [Max | R]; _ -> R end.	
+	case G of 1 -> [Max | R]; _ -> R end.
 
 sieve(N) -> sieve(N, 11, [2, 3, 5, 7]).
 
