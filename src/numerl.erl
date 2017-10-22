@@ -90,7 +90,8 @@ i2powm(<<Y:8>>, M, R) ->
 i2powm(<<Y:8, P/binary>>, M, R) ->
 	C = num_util:p2(Y),
 	F = (1 bsl (Y bsr C)) rem M,
-	i2powm(P, M, sqrm((R * sqrm(F, M, C)) rem M, M, 8)).
+	i2powm(P, M, sqrm((R * sqrm(F, M, C)) rem M, M, 8));
+i2powm(<<>>, _, R) -> R.
 
 sqrm(R, _, 0) -> R;
 sqrm(R, M, N) -> sqrm((R * R) rem M, M, N - 1).
