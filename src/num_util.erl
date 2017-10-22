@@ -26,6 +26,7 @@ log2_bin_s(N) -> (N band 2) bsr 1 + 1.
 
 % the largest power of 2 dividing N
 p2(0) -> 0;
+p2(N) when N band 1 =:= 1 -> 0;
 p2(N) when N < ?N31 -> p2(N, 0);
 p2(N) ->
 	case term_to_binary(N) of
