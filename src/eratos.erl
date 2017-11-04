@@ -1,12 +1,18 @@
 -module(eratos).
 
--export([sieve/1]).
+-export([sieve/1, sieve/2]).
 
 % compute the list of all primes up to N
-sieve(N) ->
+sieve(N) -> sieve(N, [7, 5, 3, 2]).
+
+sieve(N, Primes) ->
 	P_lim = numerl:isqrt(N),
 	W = wheel2:init([3, 5, 7]),
-	sieve(new_pq(), 11, P_lim, N, [7, 5, 3, 2], W).
+	case is_list(Primes) of
+		true -> ok;
+		_ -> ets:insert(Primes, [{2, y}, {3, y}, {5, y}, {7, y}])
+	end,
+	sieve(new_pq(), 11, P_lim, N, Primes, W).
 
 % Comp is a priority queue of known composites
 % N is a prime candidate
@@ -25,16 +31,18 @@ sieve(Comp, N, P_lim, Lim, Primes, W) ->
 		N -> % N is composite
 			sieve(bump(Comp, N), N + Inc, P_lim, Lim, Primes, W2);
 		_ -> % N is indeed prime we need to add the list of its multiple to Comp
-			sieve(add(Comp, N, W), N + Inc, P_lim, Lim, [N |Primes], W2)
+			sieve(add(Comp, N, W), N + Inc, P_lim, Lim, ins(N, Primes), W2)
 	end.
 
 % sieving out the composites until we reach the target
-sieve(_, N, Lim, Primes, _) when N > Lim -> lists:reverse(Primes);
+sieve(_, N, Lim, Primes, _) when N > Lim, is_list(Primes) ->
+	lists:reverse(Primes);
+sieve(_, N, Lim, Primes, _) when N > Lim -> (Primes);
 sieve(Comp, N, Lim, Primes,  W) ->
 	{Inc, W2} = wheel2:next(W),
 	case val(Comp) of
 		N -> sieve(bump(Comp, N), N + Inc, Lim, Primes, W2);
-		_ -> sieve(Comp, N + Inc, Lim, [N | Primes], W2)
+		_ -> sieve(Comp, N + Inc, Lim, ins(N, Primes), W2)
 	end.
 
 new_pq() -> empty.
@@ -101,3 +109,8 @@ fix({P, {Pl, Ll, Rl} = L, {Pr, Lr, Rr} = R} = T) ->
 		{_, Vl, Vr} when Vl < Vr -> {Pl, fix({P, Ll, Rl}), R};
 		_ -> {Pr, L, fix({P, Lr, Rr})}
 	end.
+
+ins(N, Primes) when is_list(Primes) -> [N | Primes];
+ins(N, Primes) ->
+	ets:insert(Primes, {N, y}),
+	Primes.
