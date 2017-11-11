@@ -4,7 +4,7 @@
 
 -export([full/1, list/1, pi/1, sieve/3, is_prime/1]).
 -export([rabin_miller/1, rabin_miller/2, lucas/1, lucas/3]).
--export([possible_prime/1]).
+-export([possible_prime/1, possible_prime/2]).
 
 % -export([next/1, prev/1]).
 
@@ -104,11 +104,12 @@ filter(L, P) ->
 	lists:foldl(F, C, tl(L)).
 
 % at this point N has no divisor less than 100
-possible_prime(N) ->
+possible_prime(N) -> possible_prime(N, 20).
+possible_prime(N, C) ->
 	case {numerl:ipowm(2, N - 1, N), N rem 5} of
 		{1, 2} -> misc:fibm(N + 1, N) =:= 0;
 		{1, 3} -> misc:fibm(N + 1, N) =:= 0;
-		{1, _} -> rabin_miller(N);
+		{1, _} -> rabin_miller(N, C);
 		{_, _} -> false
 	end.
 
