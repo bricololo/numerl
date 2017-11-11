@@ -69,7 +69,6 @@ add({P, L, R}, Prime, Wheel, [0 | Path]) -> {P, add(L, Prime, Wheel, Path), R};
 add({P, L, R}, Prime, Wheel, [1 | Path]) -> {P, L, add(R, Prime, Wheel, Path)}.
 
 val(empty) -> nothing;
-val({P, _, _}) -> cur(P);
 val({_, {P, _, _}}) -> cur(P).
 
 % initialize the list of composites multiple of Prime as a lazy list
