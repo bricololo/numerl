@@ -7,7 +7,7 @@ sieve(N) -> sieve(N, [7, 5, 3, 2]).
 
 sieve(N, Primes) ->
 	P_lim = numerl:isqrt(N),
-	W = wheel2:init([3, 5, 7]),
+	W = wheel:init([3, 5, 7]),
 	case is_list(Primes) of
 		true -> ok;
 		_ -> ets:insert(Primes, [{2, y}, {3, y}, {5, y}, {7, y}])
@@ -26,7 +26,7 @@ sieve(Comp, N, P_lim, Lim, Primes, W) when N > P_lim ->
 	sieve(Comp, N, Lim, Primes, W);
 % sieving out the next composite
 sieve(Comp, N, P_lim, Lim, Primes, W) ->
-	{Inc, W2} = wheel2:next(W),
+	{Inc, W2} = wheel:next(W),
 	case val(Comp) of
 		N -> % N is composite
 			sieve(bump(Comp, N), N + Inc, P_lim, Lim, Primes, W2);
@@ -37,9 +37,9 @@ sieve(Comp, N, P_lim, Lim, Primes, W) ->
 % sieving out the composites until we reach the target
 sieve(_, N, Lim, Primes, _) when N > Lim, is_list(Primes) ->
 	lists:reverse(Primes);
-sieve(_, N, Lim, Primes, _) when N > Lim -> (Primes);
+sieve(_, N, Lim, Primes, _) when N > Lim -> Primes;
 sieve(Comp, N, Lim, Primes,  W) ->
-	{Inc, W2} = wheel2:next(W),
+	{Inc, W2} = wheel:next(W),
 	case val(Comp) of
 		N -> sieve(bump(Comp, N), N + Inc, Lim, Primes, W2);
 		_ -> sieve(Comp, N + Inc, Lim, ins(N, Primes), W2)
@@ -77,7 +77,7 @@ np(Prime, Wheel) -> {Prime, Wheel, Prime * Prime}.
 
 % give the next element of the lazy list
 next({Prime, Wheel, M}) ->
-	{Inc, W2} = wheel2:next(Wheel),
+	{Inc, W2} = wheel:next(Wheel),
 	{Prime, W2, Prime  * Inc + M}.
 
 % value of the lazy list
@@ -87,7 +87,7 @@ cur({_, _, V}) -> V.
 % not change as a composite removed is replaced by a bigger composite.
 bump({Sz, T}, N) -> {Sz, bumpt(T, N)}.
 
-% a composite might be present several times (ifor example 2431 will be present
+% a composite might be present several times (for example 2431 will be present
 % 3 times, as it is multiple of 11, 13 and 17). So we remove V from T until the
 % smallest composite in T is larger than V.
 bumpt({P, L, R} = T, V) ->
