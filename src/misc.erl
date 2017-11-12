@@ -1,6 +1,8 @@
 -module(misc).
 
--export([fib/1, fibm/2]).
+-export([fib/1, fibm/2, fact/1]).
+
+-define(N60, 1152921504606846976).
 
 % Fibonacci
 fib(0) -> 0;
@@ -11,6 +13,11 @@ fib(N) -> element(1, fast_fib(N)).
 fibm(0, _) -> 0;
 fibm(1, _) -> 1;
 fibm(N, M) -> element(1, fast_fibm(N, M)).
+
+fact(0) -> 1;
+fact(1) -> 1;
+fact(N) when N band 1 =:= 1 -> N * fact(N - 1);
+fact(N) -> fact(N, N - 2, 1, []).
 
 %%%
 %%% implementation
@@ -38,12 +45,17 @@ fast_fibm(N, M) ->
 	B2 = B * B,
 	P = A * B,
 	case N band 1 of
-		0 -> {pos_rem(P bsl 1 - A2, M), pos_rem(A2 + B2, M)};
-		1 -> {pos_rem(A2 + B2, M), pos_rem(P bsl 1 + B2, M)}
+		%0 -> {pos_rem(P bsl 1 - A2, M), pos_rem(A2 + B2, M)};
+		0 -> {(P bsl 1 - A2) rem M, (A2 + B2) rem M};
+		%1 -> {pos_rem(A2 + B2, M), pos_rem(P bsl 1 + B2, M)}
+		1 -> {(A2 + B2) rem M, (P bsl 1 + B2) rem M}
 	end.
 
-pos_rem(X, M) ->
-	case X rem M of
-		R when R < 0 -> R + M;
-		R -> R
-	end.
+fact(V, 0, P, Acc) -> fact([P * V | Acc], []);
+fact(V, I, P, Acc) when P < ?N60 -> fact(V + I, I - 2, P * V, Acc);
+fact(V, I, P, Acc) -> fact(V, I, 1, [P | Acc]).
+
+fact([F, S | T], Acc) -> fact(T, [F * S | Acc]);
+fact([R], []) -> R;
+fact([], Acc) -> fact(Acc, []);
+fact([R], Acc) -> fact([R | Acc], []).
