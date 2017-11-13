@@ -25,6 +25,7 @@ egcd(A, B) -> egcd(A, B, A, 1, 0, B).
 is_square(N) when N < 0 -> false;
 is_square(N) when N < 2 -> {true, N};
 is_square(N) when N band 2 =:= 2 -> false;
+is_square(N) when N band 1 =:= 1 -> is_square_(N, N band 7);
 is_square(N) -> is_square(N, num_util:p2(N)).
 
 % integer square root using Newton method
@@ -101,14 +102,44 @@ ipowm(N, P, M, R) when P band 1 =:= 1 -> ipowm(N, P - 1, M, (R * N) rem M);
 ipowm(N, P, M, R) -> ipowm((N * N) rem M, P bsr 1, M, R).
 
 is_square(_, P2) when P2 band 1 =:= 1 -> false;
-is_square(N, P2) ->
-	case (N bsr P2) band 7 of
-		1 ->
-			S = isqrt(N),
-			case S * S of
-				N -> {true, S};
-				_ -> false
-			end;
+is_square(N, P2) when P2 < 57 ->
+	is_square_(N, ((N band 16#fffffffffffffff) bsr P2) band 7);
+is_square(N, P2) -> is_square_(N, (N bsr P2) band 7).
+
+is_square_(N, 1) -> square_mod_test(N);
+is_square_(_, _) -> false.
+
+square_mod_test(N) ->
+	T = N rem 45045,
+	case square_63_test(T) of
+		false -> false;
+		true -> square_mod_test2(N, T)
+	end.
+
+square_mod_test2(N, T) ->
+	case square_65_test(T) of
+		false -> false;
+		true -> square_mod_test3(N, T)
+	end.
+
+square_mod_test3(N, T) ->
+	case lists:member(T rem 11, [0,1,3,4,5,9]) of
+		false -> false;
+		true -> is_square_(N)
+	end.
+
+square_63_test(T) ->
+	lists:member(T rem 63, [0,1,4,7,9,16,18,22,25,28,36,37,43,46,49,58]).
+
+square_65_test(T) ->
+	lists:member(
+		T rem 65,
+		[0,1,4,9,10,14,16,25,26,29,30,35,36,39,40,49,51,55,56,61,64]).
+
+is_square_(N) ->
+	S = isqrt(N),
+	case S * S of
+		N -> {true, S};
 		_ -> false
 	end.
 
