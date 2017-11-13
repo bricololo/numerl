@@ -8,7 +8,7 @@
 %% API
 
 % greatest common divisor using euclid algorithm
-gcd(A, B) -> 
+gcd(A, B) ->
 	AA = abs(A),
 	AB = abs(B),
 	case AA > AB of
@@ -46,7 +46,7 @@ ipow(1, _) -> 1;
 ipow(N, 1) -> N;
 ipow(N, 2) -> N * N;
 ipow(-1, N) when N band 1 =:= 0 -> 1;
-ipow(-1, _) -> -1; 
+ipow(-1, _) -> -1;
 ipow(2, N) -> 1 bsl N;
 ipow(N, P) -> ipow(N, P, 1).
 
