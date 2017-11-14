@@ -2,8 +2,12 @@
 
 -define(N32, 4294967296). % 1 bsl 32
 
--export([log2_est/1, p2/1]).
+-export([bytes/1, log2_est/1, p2/1, hamming/1]).
 
+% minimal number of bytes to represent N in binary
+bytes(N) -> byte_size(binary:encode_unsigned(N)).
+
+% minimal number of bits to represent N in binary, for 0, returns 0.
 log2_est(N) when N < 256 -> log2_bin(N);
 log2_est(N) ->
 	BN = binary:encode_unsigned(N),
@@ -52,3 +56,14 @@ p2(N, P) ->
 p2bin(P, <<0:32, Bin/binary>>) -> p2bin(P + 32, Bin);
 p2bin(P, <<0:8, Bin/binary>>) -> p2bin(P + 8, Bin);
 p2bin(P, <<V:8, _/binary>>) -> p2(V, P).
+
+% count the numbers of bits set to 1 in N.
+hamming(N) when N < 16777216 -> hamming24(N);
+hamming(N) -> hamming_bin(binary:encode_unsigned(N), 0).
+
+hamming24(N) -> hamming12(N band 16#fff) + hamming12((N band 16#fff000) bsr 12).
+
+hamming12(N) -> ((N * 16#1001001001001) band 16#84210842108421) rem 31.
+
+hamming_bin(<<N:24, Bin/binary>>, P) -> hamming_bin(Bin, P + hamming24(N));
+hamming_bin(Bin, P) -> P + hamming24(binary:decode_unsigned(Bin)).
