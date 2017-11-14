@@ -58,12 +58,15 @@ p2bin(P, <<0:8, Bin/binary>>) -> p2bin(P + 8, Bin);
 p2bin(P, <<V:8, _/binary>>) -> p2(V, P).
 
 % count the numbers of bits set to 1 in N.
-hamming(N) when N < 16777216 -> hamming24(N);
+hamming(N) when N < 268435456 -> hamming28(N);
 hamming(N) -> hamming_bin(binary:encode_unsigned(N), 0).
 
-hamming24(N) -> hamming12(N band 16#fff) + hamming12((N band 16#fff000) bsr 12).
+hamming28(N) -> hamm14(N band 16#3fff) + hamm14((N band 16#fffc000) bsr 14).
 
-hamming12(N) -> ((N * 16#1001001001001) band 16#84210842108421) rem 31.
+hamm14(N) -> ((N * 16#200040008001) band 16#111111111111111) rem 15.
 
-hamming_bin(<<N:24, Bin/binary>>, P) -> hamming_bin(Bin, P + hamming24(N));
-hamming_bin(Bin, P) -> P + hamming24(binary:decode_unsigned(Bin)).
+hamming_bin(<<A:14, B:14, C:14, D:14, Bin/binary>>, P) ->
+	hamming_bin(Bin, P + hamm14(A) + hamm14(B) + hamm14(C) + hamm14(D));
+hamming_bin(<<A:4, B:14, C:14, Bin/binary>>, P) ->
+	hamming_bin(Bin, P + hamm14(A) + hamm14(B) + hamm14(C));
+hamming_bin(Bin, P) -> P + hamming28(binary:decode_unsigned(Bin)).
