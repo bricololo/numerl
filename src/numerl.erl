@@ -5,6 +5,8 @@
 -export([gcd/2, egcd/2, is_square/1, isqrt/1, icubrt/1, iroot/2]).
 -export([ipow/2, ipowm/3, jacobi/2]).
 
+-define(N64, 16#ffffffffffffffff).
+
 %% API
 
 % greatest common divisor using euclid algorithm
@@ -55,12 +57,7 @@ ipowm(0, 0, _) -> undefined;
 ipowm(0, _, _) -> 0;
 ipowm(_, 0, _) -> 1;
 ipowm(1, _, _) -> 1;
-ipowm(2, P, M) ->
-	L = case num_util:log2_est(P) of
-			V when V band 7 =:= 0 -> V;
-			K -> K + 8 - K band 7
-		end,
-	i2powm(<<P:L>>, M, 1);
+ipowm(2, P, M) when P > ?N64, M > ?N64 -> i2powm(binary:encode_unsigned(P), M, 1);
 ipowm(N, P, M) -> ipowm(N, P, M, 1).
 
 % Jacobi-Legendre symbol (M is supposed to be odd
