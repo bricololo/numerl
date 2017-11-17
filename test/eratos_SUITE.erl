@@ -4,8 +4,7 @@
 
 -include_lib("common_test/include/ct.hrl").
 
-all() ->
-	[{group, exported}].
+all() -> [{group, exported}].
 
 groups() ->
 	[{exported,

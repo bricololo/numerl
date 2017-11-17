@@ -56,6 +56,7 @@ p2_f(P, T) ->
 				list_to_binary(lists:reverse(binary_to_list(T))))).
 
 % count the numbers of bits set to 1 in N.
+hamming(N) when N < 16384 -> hamm14(N);
 hamming(N) when N < 268435456 -> hamming28(N);
 hamming(N) -> hamming_bin(binary:encode_unsigned(N), 0).
 
