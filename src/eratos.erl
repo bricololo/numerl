@@ -1,6 +1,6 @@
 -module(eratos).
 
--export([sieve/1, sieve/2]).
+-export([sieve/1, sieve/2, foldl/3]).
 
 % compute the list of all primes up to N
 sieve(N) -> sieve(N, [7, 5, 3, 2]).
@@ -13,6 +13,12 @@ sieve(N, Primes) ->
 		_ -> ets:insert(Primes, [{2, y}, {3, y}, {5, y}, {7, y}])
 	end,
 	sieve(new_pq(), 11, P_lim, N, Primes, W).
+
+foldl(N, Fun, Acc) ->
+	P_lim = numerl:isqrt(N),
+	W = wheel:init([3, 5, 7]),
+	N_acc = lists:foldl(Fun, Acc, [2, 3, 5, 7]),
+	sieve(new_pq(), 11, P_lim, N, {Fun, N_acc}, W).
 
 % Comp is a priority queue of known composites
 % N is a prime candidate
@@ -35,6 +41,7 @@ sieve(Comp, N, P_lim, Lim, Primes, W) ->
 	end.
 
 % sieving out the composites until we reach the target
+sieve(_, N, Lim, {_, Acc}, _) when N > Lim -> Acc;
 sieve(_, N, Lim, Primes, _) when N > Lim, is_list(Primes) ->
 	lists:reverse(Primes);
 sieve(_, N, Lim, Primes, _) when N > Lim -> Primes;
@@ -109,6 +116,7 @@ fix({P, {Pl, Ll, Rl} = L, {Pr, Lr, Rr} = R} = T) ->
 		_ -> {Pr, L, fix({P, Lr, Rr})}
 	end.
 
+ins(N, {Fun, Acc}) -> {Fun, Fun(N, Acc)};
 ins(N, Primes) when is_list(Primes) -> [N | Primes];
 ins(N, Primes) ->
 	ets:insert(Primes, {N, y}),
