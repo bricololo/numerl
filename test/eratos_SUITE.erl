@@ -11,6 +11,7 @@ groups() ->
 		[shuffle],
 		[sieve_small,
 		 sieve_small_ets,
+		 sieve_small_foldl,
 		 sieve_1000,
 		 sieve_10000,
 		 sieve_100000,
@@ -36,6 +37,12 @@ sieve_small_ets(_) ->
 	Goal = [{X, y} || X <- P],
 	Tid = eratos:sieve(120, Tid),
 	Goal = lists:sort(ets:tab2list(Tid)),
+	ok.
+
+sieve_small_foldl(_) ->
+	F = fun(E, Acc) -> [E | Acc] end,
+	Result = lists:reverse(eratos:foldl(120, F, [])),
+	Result = eratos:sieve(120),
 	ok.
 
 sieve_1000(_) ->
