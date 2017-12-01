@@ -24,7 +24,8 @@ foldl(N, Fun, Acc) ->
 % N is a prime candidate
 % P_lim is the maximum prime to verify
 % Lim is the target number
-% Primes is the (growing) list of primes found
+% Primes is the (growing) list/ets table of primes found or the accumulated
+% result of the provided function so far in case of foldl
 % W is a wheel of deltas
 
 % we don't need to add lists of composites anymore
@@ -34,10 +35,10 @@ sieve(Comp, N, P_lim, Lim, Primes, W) when N > P_lim ->
 sieve(Comp, N, P_lim, Lim, Primes, W) ->
 	{Inc, W2} = wheel:next(W),
 	case val(Comp) of
-		N -> % N is composite
-			sieve(bump(Comp, N), N + Inc, P_lim, Lim, Primes, W2);
-		_ -> % N is indeed prime we need to add the list of its multiple to Comp
-			sieve(add(Comp, N, W), N + Inc, P_lim, Lim, ins(N, Primes), W2)
+		% N is composite
+		N -> sieve(bump(Comp, N), N + Inc, P_lim, Lim, Primes, W2);
+		% N is indeed prime we need to add the list of its multiple to Comp
+		_ -> sieve(add(Comp, np(N, W)), N + Inc, P_lim, Lim, ins(N, Primes), W2)
 	end.
 
 % sieving out the composites until we reach the target
@@ -45,12 +46,35 @@ sieve(_, N, Lim, {_, Acc}, _) when N > Lim -> Acc;
 sieve(_, N, Lim, Primes, _) when N > Lim, is_list(Primes) ->
 	lists:reverse(Primes);
 sieve(_, N, Lim, Primes, _) when N > Lim -> Primes;
-sieve(Comp, N, Lim, Primes,  W) ->
+sieve(Comp, N, Lim, Primes, W) ->
 	{Inc, W2} = wheel:next(W),
 	case val(Comp) of
 		N -> sieve(bump(Comp, N), N + Inc, Lim, Primes, W2);
 		_ -> sieve(Comp, N + Inc, Lim, ins(N, Primes), W2)
 	end.
+
+ins(N, {Fun, Acc}) -> {Fun, Fun(N, Acc)};
+ins(N, Primes) when is_list(Primes) -> [N | Primes];
+ins(N, Primes) ->
+	ets:insert(Primes, {N, y}),
+	Primes.
+
+% initialize the list of composites multiple of Prime as a lazy list
+np(Prime, Wheel) -> {Prime, Wheel, Prime * Prime}.
+
+%%
+%% Implementation of a priority queue of lazy lists as a heap.
+%% Might become a separate module but then cur/1 and next/1 would need to be
+%% callback functions
+%%
+
+% value of the lazy list
+cur({_, _, V}) -> V.
+
+% give the next element of the lazy list
+next({Prime, Wheel, M}) ->
+	{Inc, W2} = wheel:next(Wheel),
+	{Prime, W2, Prime * Inc + M}.
 
 new_pq() -> empty.
 
@@ -65,29 +89,18 @@ path(N, L) -> path(N bsr 1, [N band 1 | L]).
 % priority queue.
 % The priority queue is managed as a heap, so:
 % Creating the root of the heap
-add(empty, Prime, Wheel) -> {1, leaf(np(Prime, Wheel))};
+add(empty, Elem) -> {1, leaf(Elem)};
 % adding the Sz + 1 element to the tree T at the position given by path/1
-add({Sz, T}, Prime, Wheel) -> {Sz + 1, add(T, Prime, Wheel, path(Sz + 1))}.
+add({Sz, T}, Elem) -> {Sz + 1, add(T, Elem, path(Sz + 1))}.
 
 % adding an element by creating an empty subtree as a leaf
-add(nil, Prime, Wheel, []) -> leaf(np(Prime, Wheel));
+add(nil, Elem, []) -> leaf(Elem);
 % going through tre Left (resp. Right) subtree until reaching the missing leaf
-add({P, L, R}, Prime, Wheel, [0 | Path]) -> {P, add(L, Prime, Wheel, Path), R};
-add({P, L, R}, Prime, Wheel, [1 | Path]) -> {P, L, add(R, Prime, Wheel, Path)}.
+add({P, L, R}, Elem, [0 | Path]) -> {P, add(L, Elem, Path), R};
+add({P, L, R}, Elem, [1 | Path]) -> {P, L, add(R, Elem, Path)}.
 
 val(empty) -> nothing;
 val({_, {P, _, _}}) -> cur(P).
-
-% initialize the list of composites multiple of Prime as a lazy list
-np(Prime, Wheel) -> {Prime, Wheel, Prime * Prime}.
-
-% give the next element of the lazy list
-next({Prime, Wheel, M}) ->
-	{Inc, W2} = wheel:next(Wheel),
-	{Prime, W2, Prime  * Inc + M}.
-
-% value of the lazy list
-cur({_, _, V}) -> V.
 
 % remove the composite N from the tree T of size Sz, the size of the tree will
 % not change as a composite removed is replaced by a bigger composite.
@@ -115,9 +128,3 @@ fix({P, {Pl, Ll, Rl} = L, {Pr, Lr, Rr} = R} = T) ->
 		{_, Vl, Vr} when Vl < Vr -> {Pl, fix({P, Ll, Rl}), R};
 		_ -> {Pr, L, fix({P, Lr, Rr})}
 	end.
-
-ins(N, {Fun, Acc}) -> {Fun, Fun(N, Acc)};
-ins(N, Primes) when is_list(Primes) -> [N | Primes];
-ins(N, Primes) ->
-	ets:insert(Primes, {N, y}),
-	Primes.
