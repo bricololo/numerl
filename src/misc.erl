@@ -1,6 +1,6 @@
 -module(misc).
 
--export([fib/1, fibm/2, fact/1]).
+-export([fib/1, fibm/2, fast_fibm/2, lucas/1, lucas/3, fact/1]).
 
 -define(N60, 1152921504606846976).
 
@@ -18,6 +18,16 @@ fact(0) -> 1;
 fact(1) -> 1;
 fact(N) when N band 1 =:= 1 -> N * fact(N - 1);
 fact(N) -> fact(N, N - 2, 1, []).
+
+% Nth lucas number
+lucas(N) -> lucas(2, 1, N).
+
+% Nth lucas number of parameter A, B
+lucas(A, _, 0) -> A;
+lucas(_, B, 1) -> B;
+lucas(A, B, N) ->
+	{F1, F2} = fast_fib(N - 1),
+	A * F1 + B * F2.
 
 %%%
 %%% implementation
@@ -45,9 +55,7 @@ fast_fibm(N, M) ->
 	B2 = B * B,
 	P = A * B,
 	case N band 1 of
-		%0 -> {pos_rem(P bsl 1 - A2, M), pos_rem(A2 + B2, M)};
 		0 -> {(P bsl 1 - A2) rem M, (A2 + B2) rem M};
-		%1 -> {pos_rem(A2 + B2, M), pos_rem(P bsl 1 + B2, M)}
 		1 -> {(A2 + B2) rem M, (P bsl 1 + B2) rem M}
 	end.
 
