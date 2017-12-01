@@ -2,7 +2,7 @@
 
 -define(N60, 1152921504606846976). % 1 bsl 60
 
--export([full/1, list/1, pi/1, sieve/3, is_prime/1]).
+-export([full/1, list/1, pi/1, sieve/3, is_prime/1, is_prime/2]).
 -export([rabin_miller/1, rabin_miller/2, lucas/1, lucas/3]).
 -export([possible_prime/1, possible_prime/2]).
 
@@ -30,14 +30,16 @@ sieve(N, P, F) ->
 	sieve(numerl:isqrt(N), [P], lists:reverse(F), tl(init_list(F, N))).
 
 % a probalistic test.
-is_prime(N) when N < 101 ->
+is_prime(N) -> is_prime(N, 20).
+
+is_prime(N, _) when N < 101 ->
 	lists:member(N,
 		[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
 			71, 73, 79, 83, 89, 97]);
-is_prime(N) ->
+is_prime(N, K) ->
 	case numerl:gcd(2305567963945518424753102147331756070, N) of
 		1 when N < 10201 -> true;
-		1 -> possible_prime(N);
+		1 -> possible_prime(N, K);
 		_ -> false
 	end.
 
@@ -115,7 +117,7 @@ possible_prime(N, C) ->
 
 r_m(_, _, _, 0) -> maybe;
 r_m(N, Q, T, C) ->
-	A = rand:uniform(min(N -1,?N60)) + 1,
+	A = rand:uniform(min(N - 1, ?N60)) + 1,
 	case numerl:ipowm(A, Q, N) of
 		1 -> r_m(N, Q, T, C - 1);
 		B ->
