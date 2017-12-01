@@ -38,9 +38,25 @@ sieve_small_ets(_) ->
 	Goal = lists:sort(ets:tab2list(Tid)),
 	ok.
 
+sieve_1000(_) ->
+	Result = eratos:sieve(1000),
+	[2 | _] = Result,
+	Length = 168,
+	Last = 997,
+	Length = length(Result),
+	Last = lists:last(Result),
+	% testing that each number in Result is indeed prime.
+	Divs = [2 | lists:seq(3, 31, 2)],
+	Goal = lists:duplicate(Length, true),
+	Goal = lists:map(fun(N) -> check_prime(N, Divs) end, Result),
+	ok.
+
+check_prime(N, [N | _]) -> true;
+check_prime(N, [H | T]) when N rem H =/= 0 -> check_prime(N, T);
+check_prime(_, []) -> true;
+check_prime(_, _) -> false.
+
 % got the value of length and last from pari/gp
-sieve_1000(Conf) ->
-	sieve([{value, 1000}, {length, 168}, {last, 997} | Conf]).
 sieve_10000(Conf) ->
 	sieve([{value, 10000}, {length, 1229}, {last, 9973} | Conf]).
 sieve_100000(Conf) ->
