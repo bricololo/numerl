@@ -14,8 +14,8 @@ gcd(A, B) ->
 	AA = abs(A),
 	AB = abs(B),
 	case AA > AB of
-		false -> abs(euclid(AB, AA));
-		true -> abs(euclid(AA, AB))
+		false -> euclid(AB, AA);
+		true -> euclid(AA, AB)
 	end.
 
 % extended GCD
@@ -32,6 +32,7 @@ is_square(N) -> is_square(N, num_util:p2(N)).
 
 % integer square root using Newton method
 isqrt(N) when N < 0 -> undefined;
+isqrt(N) when N < 2 -> N;
 isqrt(N) -> isqrt(N, isqrt_candidate(N)).
 
 % integer cube root using Newton method
