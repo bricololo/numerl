@@ -6,7 +6,6 @@
 -export([strong_test/1, strong_test/2, fibonacci_test/1, lucas_test/1]).
 -export([lucas_test/3, no_small_div_test/1, trial_div_test/1]).
 -export([trial_div_test/2, rabin_miller_test/1, rabin_miller_test/2]).
-
 -export([is_prime/1, is_prime/2, possible_prime/1, possible_prime/2]).
 
 % TODO:
@@ -74,7 +73,7 @@ lucas_test(N, A, B) ->
 no_small_div_test(N) ->
 	case numerl:gcd(614889782588491410, N) of % up to 47
 		1 ->
-			case numerl:gcd(38655288426304091) of % up to 89
+			case numerl:gcd(38655288426304091, N) of % up to 89
 				1 -> true;
 				D -> {false, D}
 			end;
@@ -181,6 +180,7 @@ r_m2(B, N, E, T) when E < T -> r_m2(numerl:ipowm(B, 2, N), N, E + 1, T);
 r_m2(_, _, _, _) -> false.
 
 strong_test(_, 0, _) -> false;
+strong_test(1, _, _) -> false;
 strong_test(B, S, N) ->
 	case B * B rem N of
 		N1 when N1 =:= N - 1 -> true;
