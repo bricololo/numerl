@@ -123,17 +123,12 @@ sieve(Max, Primes, Filter, Unknown) ->
 		Large when Large > Max ->
 			lists:append([lists:reverse(Filter), Primes, Unknown]);
 		Prime ->
-			{N_primes, N_unknown} = split(Unknown, Prime * Prime, []),
-			sieve(
-				Max,
-				lists:append(tl(Primes), N_primes),
-				[Prime | Filter],
-				[N || N <- N_unknown, N rem Prime =/= 0]
-			)
+			{N_primes, N_unknown} = split(Unknown, Prime * Prime),
+			sieve(Max, lists:append(tl(Primes), N_primes), [Prime | Filter],
+				[N || N <- N_unknown, N rem Prime =/= 0])
 	end.
 
-split([H | T], M, Acc) when H < M -> split(T, M, [H | Acc]);
-split(L, _, Acc) -> {lists:reverse(Acc), L}.
+split(L, M) -> lists:splitwith(fun(E) -> E < M end, L).
 
 init_list([2], N) -> lists:seq(3, N, 2);
 init_list([2, 3], N) -> lists:merge(lists:seq(5, N, 6), lists:seq(7, N, 6));
@@ -158,10 +153,11 @@ possible_prime(N, C) ->
 
 fib_and_fermat(N) ->
 	case fermat_test(N, 2) of
-		true -> misc:fibm(N + 1, N) =:= 0; % bypassing the unneeded jacobi
+		true -> misc:fibm(N + 1, N) =:= 0;
 		Else -> Else
 	end.
 
+% TODO: replace r_m2/4 by strong_test/3
 r_m(_, _, _, 0) -> true;
 r_m(N, Q, T, C) ->
 	A = rand:uniform(min(N - 1, ?N60)) + 1,
