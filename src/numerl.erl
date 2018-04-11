@@ -31,14 +31,19 @@ is_square(N) when N band 1 =:= 1 -> is_square_(N, N band 7);
 is_square(N) -> is_square(N, num_util:p2(N)).
 
 % integer square root using Newton method
+% return the largest integer R such that R * R =< N
 isqrt(N) when N < 0 -> undefined;
 isqrt(N) when N < 2 -> N;
 isqrt(N) -> isqrt(N, isqrt_candidate(N)).
 
 % integer cube root using Newton method
+% return the largest integer R such that R * R * R =< N
+icubrt(-1) -> -1;
+icubrt(N) when N > - 5, N < -1 -> -2;
 icubrt(N) -> icubrt(N, icubrt_candidate(N)).
 
 % integer root using Newton method
+% assuming N >= 0 when P is odd
 iroot(N, P) -> iroot(N, P, iroot_candidate(N, P)).
 
 % fast exponentiation
@@ -157,9 +162,10 @@ icubrt(N, A) -> icubrt(N, A, (N div (A * A) + (A bsl 1)) div 3).
 icubrt_candidate(N) -> 1 bsl (num_util:log2_est(N) div 3).
 
 icubrt(N, A, B) when abs(A - B) =< 1 ->
-	case ipow(A, 3) of
-		P when P > N -> B - 1;
-		_ -> B
+	L = max(A, B),
+	case ipow(L, 3) of
+		R when R > N -> L - 1;
+		_ -> L
 	end;
 icubrt(N, _, A) -> icubrt(N, A, (N div (A * A) + (A bsl 1)) div 3).
 
@@ -167,9 +173,10 @@ iroot(N, P, A) ->
 	iroot(N, P, A, ((N div ipow(A, P - 1)) + (A * (P - 1))) div P).
 
 iroot(N, P, A, B) when abs(A - B) =< 1 ->
-	case ipow(A, P) of
-		R when R > N -> B - 1;
-		_ -> B
+	L = max(A, B),
+	case ipow(L, P) of
+		R when R > N -> L - 1;
+		_ -> L
 	end;
 iroot(N, P, _, A) ->
 	iroot(N, P, A, ((N div ipow(A, P - 1)) + (A * (P - 1))) div P).

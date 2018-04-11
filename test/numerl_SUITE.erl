@@ -12,8 +12,8 @@ groups() ->
 		[gcd,
 %		 egcd,
 		 is_square,
-		 isqrt]
-%		 icubrt,
+		 isqrt,
+		 icubrt]
 %		 iroot,
 %		 ipow,
 %		 ipowm,
@@ -32,12 +32,12 @@ gcd(_) ->
 	L3 = lists:duplicate(10, true),
 	L4 = [Gcd(A,B) =:= Gcd(B,A) || A <- lists:seq(1,5), B <- lists:seq(1,5)],
 	L4 = lists:duplicate(25, true),
-	
+
 	2 = Gcd(10, 6),
 	2 = Gcd(10, -6),
 	2 = Gcd(-10, 6),
 	2 = Gcd(-10, -6),
-	
+
 	900000000090000000009 =
 		Gcd(12345678901234567890123456789, 98765432109876543210987654321),
 	ok.
@@ -72,4 +72,18 @@ isqrt(_) ->
 	1 = Isqrt(3),
 	2 = Isqrt(4),
 	2 = Isqrt(8), % trigger the case where we have to decrease B
+	ok.
+
+icubrt(_) ->
+	Icubrt = fun(N) -> numerl:icubrt(N) end,
+
+	-1 = Icubrt(-1),
+	-2 = Icubrs(-2),
+	-2 = Icubrs(-8),
+	0 = Icubrt(0),
+	1 = Icubrt(1),
+	1 = Icubrt(2),
+	1 = Icubrt(7),
+	2 = Icubrt(8),
+	2 = Icubrt(26),
 	ok.
