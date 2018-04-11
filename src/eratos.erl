@@ -20,7 +20,7 @@ foldl(N, Fun, Acc) ->
 	N_acc = lists:foldl(Fun, Acc, [2, 3, 5, 7]),
 	sieve(pq:new(fun cur/1, fun next/1), 11, P_lim, N, {Fun, N_acc}, W).
 
-% Comp is a priority queue of known composites
+% Comp is sorted heap of known composites
 % N is a prime candidate
 % P_lim is the maximum prime to verify
 % Lim is the target number
@@ -59,13 +59,13 @@ ins(N, Primes) ->
 	ets:insert(Primes, {N, y}),
 	Primes.
 
-% initialize the list of composites multiple of Prime as a lazy list
+% lazy list of composites multiple of Prime
 np(Prime, Wheel) -> {Prime, Wheel, Prime * Prime}.
 
-% value of the lazy list
+% head of the lazy list
 cur({_, _, V}) -> V.
 
-% give the next element of the lazy list
+% tail of the lazy list
 next({Prime, Wheel, M}) ->
 	{Inc, W2} = wheel:next(Wheel),
 	{Prime, W2, Prime * Inc + M}.
