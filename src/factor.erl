@@ -78,16 +78,14 @@ lehman2(N, B, K) ->
 
 lehman3(N, B, K, R, M) ->
 	T = 4 * K * N,
-	A = numerl:isqrt(T) + 1,
-	Lim = T + B * B,
-	lehman4(N, B, K, R, M, A, T, Lim).
+	lehman4(N, B, K, R, M, numerl:isqrt(T) + 1, T, T + B * B).
 
 lehman4(N, B, K, _, _, A, _, Lim) when A * A > Lim -> lehman2(N, B, K + 1);
 lehman4(N, B, K, R, M, A, T, Lim) when A rem M =:= R ->
 	C = A * A - T,
 	case numerl:is_square(C) of
 		{true, S} -> numerl:gcd(N, A + S);
-		false -> lehman3(N, B, K, R, M, A + M, T, Lim)
+		false -> lehman4(N, B, K, R, M, A + M, T, Lim)
 	end;
 lehman4(N, B, K, R, M, A, T, Lim) -> lehman4(N, B, K, R, M, A + 1, T, Lim).
 
