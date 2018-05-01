@@ -1,5 +1,7 @@
 -module(numerl).
 
+%% @author Laurent Picouleau <l.picouleau@gmail.com>
+
 %% core number theory functions.
 
 -export([gcd/2, egcd/2, is_square/1, isqrt/1, icubrt/1, iroot/2]).
@@ -9,6 +11,8 @@
 
 %% API
 
+-spec gcd(A :: integer(), B :: integer()) -> integer().
+% @doc
 % greatest common divisor using euclid algorithm
 gcd(A, B) ->
 	AA = abs(A),
@@ -18,35 +22,52 @@ gcd(A, B) ->
 		true -> euclid(AA, AB)
 	end.
 
-% extended GCD
+-spec egcd(A :: integer(), B :: integer()) -> {integer(), integer(), integer()}.
+% @doc
+% egcd(A, B) returns {D, U, V} such as: A * U + B * V = D = gcd(A, B)
 egcd(0, B) -> {B, 0, 1};
 egcd(A, 0) -> {A, 1, 0};
 egcd(A, B) -> egcd(A, B, A, 1, 0, B).
 
-% a fast test. Try avoiding computing the square root
+-spec is_square(N :: integer()) -> boolean() | {boolean(), integer()}.
+% @doc
+% a fast test. Try avoiding computing the square root if not needed.
+% returns false if N is not the square of an integer and {true, isqrt(N)} when
+% N is a square.
 is_square(N) when N < 0 -> false;
 is_square(N) when N < 2 -> {true, N};
 is_square(N) when N band 2 =:= 2 -> false;
 is_square(N) when N band 1 =:= 1 -> is_square_(N, N band 7);
 is_square(N) -> is_square(N, num_util:p2(N)).
 
+-spec isqrt(N :: integer()) -> atom() | integer().
+% @doc
 % integer square root using Newton method
-% return the largest integer R such that R * R =< N
+% returns the largest integer R such that R * R &lt; N + 1
 isqrt(N) when N < 0 -> undefined;
 isqrt(N) when N < 2 -> N;
 isqrt(N) -> isqrt(N, isqrt_candidate(N)).
 
+-spec icubrt(N :: integer()) -> integer().
+% @doc
 % integer cube root using Newton method
-% return the largest integer R such that R * R * R =< N
+% returns the largest integer R such that R * R * R &lt; N + 1
 icubrt(-1) -> -1;
 icubrt(N) when N > - 5, N < -1 -> -2;
 icubrt(N) -> icubrt(N, icubrt_candidate(N)).
 
+-spec iroot(N :: integer(), P :: integer()) -> integer().
+% @doc
 % integer root using Newton method
-% assuming N >= 0 when P is odd
+% assuming N &gt; -1 when P is even but no test is done, caller has to ensure it.
+% return the largest integer R such that ipow(R, P) &lt; N + 1
 iroot(N, P) -> iroot(N, P, iroot_candidate(N, P)).
 
-% fast exponentiation
+-spec ipow(N :: number(), P :: integer()) -> integer() | float().
+% @doc
+% fast exponentiation. Gives exact result when N is an integer and an
+% approximation when N is a float. Note that the function can overflow if P is
+% large and N is a float larger than 1.
 ipow(0, 0) -> undefined;
 ipow(0, _) -> 0;
 ipow(_, 0) -> 1;
@@ -58,7 +79,10 @@ ipow(-1, _) -> -1;
 ipow(2, N) -> 1 bsl N;
 ipow(N, P) -> ipow(N, P, 1).
 
+-spec ipowm(N :: number(), P :: integer(), M :: integer()) -> integer().
+% @doc
 % fast modular exponentiation
+% returns ipow(N, P) rem M
 ipowm(0, 0, _) -> undefined;
 ipowm(0, _, _) -> 0;
 ipowm(_, 0, _) -> 1;
