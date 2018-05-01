@@ -4,6 +4,7 @@
 
 -include_lib("common_test/include/ct.hrl").
 
+-define(Large, 1000000000000000000000000). % 10^24
 all() -> [{group, exported}].
 
 groups() ->
@@ -13,8 +14,8 @@ groups() ->
 %		 egcd,
 		 is_square,
 		 isqrt,
-		 icubrt]
-%		 iroot,
+		 icubrt,
+		 iroot]
 %		 ipow,
 %		 ipowm,
 %		 jacobi]
@@ -72,18 +73,40 @@ isqrt(_) ->
 	1 = Isqrt(3),
 	2 = Isqrt(4),
 	2 = Isqrt(8), % trigger the case where we have to decrease B
+	N = rand:uniform(?Large),
+	R = Isqrt(N),
+	true = root_check(N, R, 2),
 	ok.
 
 icubrt(_) ->
 	Icubrt = fun(N) -> numerl:icubrt(N) end,
 
 	-1 = Icubrt(-1),
-	-2 = Icubrs(-2),
-	-2 = Icubrs(-8),
+	-2 = Icubrt(-2),
+	-2 = Icubrt(-8),
+	-3 = Icubrt(-9),
 	0 = Icubrt(0),
 	1 = Icubrt(1),
 	1 = Icubrt(2),
 	1 = Icubrt(7),
 	2 = Icubrt(8),
 	2 = Icubrt(26),
+	10 = Icubrt(1024),
+	N = rand:uniform(?Large),
+	R = Icubrt(N),
+	true = root_check(N, R, 3),
 	ok.
+
+iroot(_) ->
+	Iroot = fun(N, P) -> numerl:iroot(N, P) end,
+
+	P = 4 + rand:uniform(10),
+	N = rand:uniform(?Large),
+	R = Iroot(N, P),
+	true = root_check(N, R, P),
+	ok.
+
+root_check(N, R, P) ->
+	B = numerl:ipow(R, P),
+	A = numerl:ipow(R + 1, P),
+	(B =< N) andalso (A > N).
