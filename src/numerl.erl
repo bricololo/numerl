@@ -1,7 +1,5 @@
 -module(numerl).
 
-%% @author Laurent Picouleau <l.picouleau@gmail.com>
-
 %% core number theory functions.
 
 -export([gcd/2, egcd/2, is_square/1, isqrt/1, icubrt/1, iroot/2]).
@@ -90,7 +88,7 @@ ipowm(1, _, _) -> 1;
 ipowm(2, P, M) when P > ?N64, M > ?N64 -> i2powm(binary:encode_unsigned(P), M, 1);
 ipowm(N, P, M) -> ipowm(N, P, M, 1).
 
-% Jacobi-Legendre symbol (M is supposed to be odd
+% Jacobi-Legendre symbol (M is supposed to be odd, caller has to ensure that)
 jacobi(A, M) -> jacobi(abs(A rem M), M, 1).
 
 %%%

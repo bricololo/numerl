@@ -1,10 +1,21 @@
 -module(eratos).
 
+-export_type([tab/0, tid/0]).
+
+-type tab() :: atom() | tid().
+-opaque tid() :: reference().
+
 -export([sieve/1, sieve/2, foldl/3]).
 
+-spec sieve(N :: integer()) -> [integer()].
+% @doc
 % compute the list of all primes up to N
 sieve(N) -> sieve(N, [7, 5, 3, 2]).
 
+-spec sieve(N :: integer, P :: [integer()] | tab()) -> [integer()] | tab().
+% @doc
+% returns all the primes up to N either as a list or as an ets table according
+% to the type of the second argument.
 sieve(N, Primes) ->
 	P_lim = numerl:isqrt(N),
 	W = wheel:init([3, 5, 7]),
@@ -14,13 +25,21 @@ sieve(N, Primes) ->
 	end,
 	sieve(pq:new(fun cur/1, fun next/1), 11, P_lim, N, Primes, W).
 
+-spec foldl(N :: pos_integer(), Fun :: function, Acc :: term()) -> term().
+% @doc
+% equivalent to lists:foldl(Fun, Acc, sieve(N)) but the list of primes is not
+% built
 foldl(N, Fun, Acc) ->
 	P_lim = numerl:isqrt(N),
 	W = wheel:init([3, 5, 7]),
 	N_acc = lists:foldl(Fun, Acc, [2, 3, 5, 7]),
 	sieve(pq:new(fun cur/1, fun next/1), 11, P_lim, N, {Fun, N_acc}, W).
 
-% Comp is sorted heap of known composites
+%%%
+%%% internals
+%%%
+
+% Comp is a sorted heap of known composites
 % N is a prime candidate
 % P_lim is the maximum prime to verify
 % Lim is the target number
