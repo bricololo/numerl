@@ -1,6 +1,6 @@
 -module(factor).
 
--export([naive/1, naive/2, lehman/1, pollard/1, pollard/2, fermat/1]).
+-export([naive/1, naive/2, fermat/1, lehman/1, rho/1, rho/2]).
 -export([naive_list/1, naive_list/2, naive_list/3]).
 
 %%%
@@ -43,16 +43,18 @@ lehman(N) ->
 	end.
 
 % Pollard rho algorithm
-pollard(N) -> pollard(N, 1).
+rho(N) -> rho(N, -1).
 
-pollard(N, B) ->
-	pollard(N, B, 2, 2, 2, 1, 1, 1, 0).
+rho(N, B) ->
+	F = fun (X) -> (X * X + B) rem N end,
+	Y = F(2),
+	rho2(N, F, 2, Y, numerl:gcd(N, Y - 2)).
 
 %%%
 %%% implementation
 %%%
 
-naive_list(N, Limit, [H | _], Acc) when H > Limit -> final(N, Limit, H, Acc);	
+naive_list(N, Limit, [H | _], Acc) when H > Limit -> final(N, Limit, H, Acc);
 naive_list(N, Limit, [H | T], Acc) when N rem H =:= 0 ->
 	{N2, Facts} = reduce(N div H, [H]),
 	naive_list(N2, Limit, T, Facts ++ Acc);
@@ -70,6 +72,12 @@ final(N, Limit, Factor, Acc) ->
 
 reduce(N, [F | T]) when N rem F =:= 0 -> reduce(N div F, [F, F | T]);
 reduce(N, L) -> {N, L}.
+
+fermat(N, R) ->
+	case numerl:is_square(R * R - N) of
+		false -> fermat(N, R + 1);
+		{true, S} -> [R + S, R - S]
+	end.
 
 lehman2(_, B, K) when K > B -> prime;
 lehman2(N, B, K) ->
@@ -89,45 +97,26 @@ lehman4(N, B, K, R, M, A, T, Lim) when A rem M =:= R ->
 	end;
 lehman4(N, B, K, R, M, A, T, Lim) -> lehman4(N, B, K, R, M, A + 1, T, Lim).
 
-pollard(N, B, Y, X, X1, K, L, P, 19) ->
-	NX = (X * X + B) rem N,
-	NP = (P * (X1 - NX)) rem N,
-	case numerl:gcd(N, NP) of
-		1 -> pollard2(N, B, NX, NX, X1, K, L, NP, 0);
-		_ -> pollard_end(N, B, Y, X1)
-	end;
-pollard(N, B, Y, X, X1, K, L, P, C) ->
-	NX = (X * X + B) rem N,
-	NP = (P * (X1 - NX)) rem N,
-	pollard2(N, B, Y, NX, X1, K, L, NP, C + 1).
+rho(N, F, X, Y, 1) ->
+	U = F(X),
+	V = F(F(Y)),
+	rho(N, F, U, V, numerl:gcd(N, U - V));
+rho(N, _, _, _, N) -> fail;
+rho(_, _, _, _, G) -> G.
 
-pollard2(N, B, Y, X, X1, 1, L, P, _) ->
- 	G = numerl:gcd(N, P),
-	case G of
-		1 -> pollard_adv(N, B, X, X, P, L, L bsl 1);
-		_ -> pollard_end(N, B, Y, X1)
-	end;
-pollard2(N, B, Y, X, X1, K, L, P, C) ->
-	pollard(N, B, Y, X, X1, K - 1, L, P, C).
-
-pollard_adv(N, B, X, X1, P, K, L) ->
-	NX = pollard_loop(N, B, X, K),
-	pollard(N, B, NX, NX, X1, K, L, P, 0).
-
-pollard_loop(_, _, X, 0) -> X;
-pollard_loop(N, B, X, K) ->
-	pollard_loop(N, B, (X * X + B) rem N, K - 1).
-
-pollard_end(N, B, Y, X1) ->
-	NY = (Y * Y + B) rem N,
-	case numerl:gcd(abs(X1 - Y), N) of
-		1 -> pollard_end(N, B, NY, X1);
-		G when G < N -> G;
-		_ -> failed
+% rho but grouping 50 iterations before taking a GCD to improve speed sligthly
+rho2(N, F, X, Y, G) ->
+	case rho2(N, F, X, Y, G, 50) of
+		{1, U, V} -> rho2(N, F, U, V, 1, 50);
+		{D, U, V} ->
+			case numerl:gcd(N, D) of
+				1 -> rho2(N, F, U, V, 1);
+				_ -> rho(N, F, X, Y, 1)
+			end
 	end.
 
-fermat(N, R) ->
-	case numerl:is_square(R * R - N) of
-		false -> fermat(N, R + 1);
-		{true, S} -> [R + S, R - S]
-	end.
+rho2(_, _, X, Y, A, 0) -> {A, X, Y};
+rho2(N, F, X, Y, A, C) ->
+	U = F(X),
+	V = F(F(Y)),
+	rho2(N, F, U, V, (A * abs(U - V)) rem N, C - 1).
