@@ -34,31 +34,34 @@ egcd(A, B) -> egcd(A, B, A, 1, 0, B).
 % N is a square.
 is_square(N) when N < 0 -> false;
 is_square(N) when N < 2 -> {true, N};
-is_square(N) when N band 2 =:= 2 -> false;
-is_square(N) when N band 1 =:= 1 -> is_square_(N, N band 7);
-is_square(N) -> is_square(N, num_util:p2(N)).
+is_square(N) ->
+	case N band 3 of
+		0 -> is_square(N, num_util:p2(N));
+		1 -> is_square_(N, N band 7);
+		_ -> false
+	end.
 
 -spec isqrt(N :: integer()) -> atom() | integer().
 % @doc
-% integer square root using Newton method
-% returns the largest integer R such that R * R &lt; N + 1
+% integer square root using Newton method. returns the largest integer R such
+% that R * R &lt; N + 1
 isqrt(N) when N < 0 -> undefined;
 isqrt(N) when N < 2 -> N;
 isqrt(N) -> isqrt(N, isqrt_candidate(N)).
 
 -spec icubrt(N :: integer()) -> integer().
 % @doc
-% integer cube root using Newton method
-% returns the largest integer R such that R * R * R &lt; N + 1
+% integer cube root using Newton method. returns the largest integer R such
+% that R * R * R &lt; N + 1
 icubrt(-1) -> -1;
 icubrt(N) when N > - 5, N < -1 -> -2;
 icubrt(N) -> icubrt(N, icubrt_candidate(N)).
 
 -spec iroot(N :: integer(), P :: integer()) -> integer().
 % @doc
-% integer root using Newton method
-% assuming N &gt; -1 when P is even but no test is done, caller has to ensure it.
-% return the largest integer R such that ipow(R, P) &lt; N + 1
+% integer root using Newton method. assuming N &gt; -1 when P is even but no
+% test is done, caller has to ensure it. return the largest integer R such that
+% ipow(R, P) &lt; N + 1
 iroot(N, P) -> iroot(N, P, iroot_candidate(N, P)).
 
 -spec ipow(N :: number(), P :: integer()) -> integer() | float().
@@ -79,8 +82,7 @@ ipow(N, P) -> ipow(N, P, 1).
 
 -spec ipowm(N :: number(), P :: integer(), M :: integer()) -> integer().
 % @doc
-% fast modular exponentiation
-% returns ipow(N, P) rem M
+% fast modular exponentiation, returns ipow(N, P) rem M
 ipowm(0, 0, _) -> undefined;
 ipowm(0, _, _) -> 0;
 ipowm(_, 0, _) -> 1;
@@ -88,6 +90,8 @@ ipowm(1, _, _) -> 1;
 ipowm(2, P, M) when P > ?N64, M > ?N64 -> i2powm(binary:encode_unsigned(P), M, 1);
 ipowm(N, P, M) -> ipowm(N, P, M, 1).
 
+-spec jacobi(A :: integer, M :: integer) -> integer().
+% @doc
 % Jacobi-Legendre symbol (M is supposed to be odd, caller has to ensure that)
 jacobi(A, M) -> jacobi(abs(A rem M), M, 1).
 
