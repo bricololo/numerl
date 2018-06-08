@@ -1,7 +1,7 @@
 -module(factor).
 
--export([naive/1, naive/2, fermat/1, lehman/1, rho/1, rho/2]).
--export([naive_list/1, naive_list/2, naive_list/3]).
+-export([naive/1, naive/2, fermat/1, lehman/1, rho/1, rho/2, pollard/2]).
+-export([pollard/3, naive_list/1, naive_list/2, naive_list/3]).
 
 %%%
 %%% exported functions
@@ -49,6 +49,31 @@ rho(N, B) ->
 	F = fun (X) -> (X * X + B) rem N end,
 	Y = F(2),
 	rho2(N, F, 2, Y, numerl:gcd(N, Y - 2)).
+
+% Pollard p-1 first stage algorithm
+% works as it is for:
+% 	N = repunit(31) and B = 31 in 265 microseconds
+% 	N = repunit(47) and B = 139 in 1400 microseconds
+% 	N = repunit(97) and B = 97 in 2200 microseconds
+pollard(N, B) -> pollard(N, B, 2).
+
+% pollard(1 bsl 101 - 1, 500000, 3) finds a 13 digits prime factor in 320
+% milliseconds where rho(1 bsl 101) finds the same factor in 5 120
+% milliseconds.
+pollard(N, B, S) -> pollard(N, B, S, eratos:sieve(B), 1).
+
+pollard(N, B, S, [H | P], L) when L * H > B -> pollard(N, B, S, P, 1);
+pollard(N, B, S, [H | _] = P, L) ->
+	NS = numerl:ipowm(S, H, N),
+	case numerl:gcd(NS - 1, N) of
+		1 -> pollard(N, B, NS, P, L * H);
+		N -> fail; % stage2 needed
+		G -> G
+	end;
+pollard(N, B, S, [], _) -> p_stage_2(N, B, B * 100, S).
+
+p_stage_2(N, B1, B2, S) ->
+io:format("stage 2 needed:~n~p ~p ~p ~p~n", [N, B1, B2, S]).
 
 %%%
 %%% implementation
