@@ -13,7 +13,7 @@ naive(3) -> [3];
 naive(N) -> naive(N, 500000).
 
 % simply try all the prime numbers up to min(sqrt(N), Limit)
-naive(N, Limit) -> naive_list(N, min(Limit, numerl:isqrt(N) +1)).
+naive(N, Limit) -> naive_list(N, min(Limit, numerl:isqrt(N) + 1)).
 
 % equivalent to naive/1
 naive_list(N) -> naive_list(N, 500000).
@@ -37,13 +37,13 @@ fermat(N) ->
 lehman(N) ->
 	B = numerl:icubrt(N),
 	case naive_list(N, B, primes:list(B)) of
-		{B, N, []} -> lehman2(N, B, 1);
+		{B, N, []} -> lehman(N, B + 1, 1);
 		{_, _, [H | _]} -> H;
 		[H | _] -> H
 	end.
 
 % Pollard rho algorithm
-rho(N) -> rho(N, -1).
+rho(N) -> rho(N, 1).
 
 rho(N, B) ->
 	F = fun (X) -> (X * X + B) rem N end,
@@ -51,15 +51,9 @@ rho(N, B) ->
 	rho2(N, F, 2, Y, numerl:gcd(N, Y - 2)).
 
 % Pollard p-1 first stage algorithm
-% works as it is for:
-% 	N = repunit(31) and B = 31 in 265 microseconds
-% 	N = repunit(47) and B = 139 in 1400 microseconds
-% 	N = repunit(97) and B = 97 in 2200 microseconds
+% TODO: what is a right default value for B ?
 pollard(N, B) -> pollard(N, B, 2).
 
-% pollard(1 bsl 101 - 1, 500000, 3) finds a 13 digits prime factor in 320
-% milliseconds where rho(1 bsl 101) finds the same factor in 5 120
-% milliseconds.
 pollard(N, B, S) -> pollard(N, B, S, eratos:sieve(B), 1).
 
 pollard(N, B, S, [H | P], L) when L * H > B -> pollard(N, B, S, P, 1);
@@ -72,6 +66,9 @@ pollard(N, B, S, [H | _] = P, L) ->
 	end;
 pollard(N, B, S, [], _) -> p_stage_2(N, B, B * 100, S).
 
+% TODO:
+%  - right default value for B2?
+%  - implement stage2
 p_stage_2(N, B1, B2, S) ->
 io:format("stage 2 needed:~n~p ~p ~p ~p~n", [N, B1, B2, S]).
 
@@ -104,23 +101,21 @@ fermat(N, R) ->
 		{true, S} -> [R + S, R - S]
 	end.
 
-lehman2(_, B, K) when K > B -> prime;
-lehman2(N, B, K) ->
-	{R, M} = case K band 1 of 0 -> {1, 2}; _ -> {K + N, 4} end,
-	lehman3(N, B, K, R, M).
+lehman(_, B, K) when K > B -> prime;
+lehman(N, B, K) ->
+	L = 2 * numerl:isqrt(K * N),
+	H = L + (numerl:iroot(N, 6) + 1) div (4 * numerl:isqrt(K)),
+	case lehman_sq(N, 4 * K * N, L, H) of
+		nope -> lehman(N, B, K + 1);
+		G -> G
+	end.
 
-lehman3(N, B, K, R, M) ->
-	T = 4 * K * N,
-	lehman4(N, B, K, R, M, numerl:isqrt(T) + 1, T, T + B * B).
-
-lehman4(N, B, K, _, _, A, _, Lim) when A * A > Lim -> lehman2(N, B, K + 1);
-lehman4(N, B, K, R, M, A, T, Lim) when A rem M =:= R ->
-	C = A * A - T,
-	case numerl:is_square(C) of
-		{true, S} -> numerl:gcd(N, A + S);
-		false -> lehman4(N, B, K, R, M, A + M, T, Lim)
-	end;
-lehman4(N, B, K, R, M, A, T, Lim) -> lehman4(N, B, K, R, M, A + 1, T, Lim).
+lehman_sq(_, _, A, H) when A > H -> nope;
+lehman_sq(N, Cst, A, H) ->
+	case numerl:is_square(A * A - Cst) of
+		{true, B} -> numerl:gcd(A + B, N);
+		_ -> lehman_sq(N, Cst, A + 1, H)
+	end.
 
 rho(N, F, X, Y, 1) ->
 	U = F(X),
