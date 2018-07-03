@@ -13,8 +13,8 @@ groups() ->
 		 naive_2,
 		 fermat,
 		 %lehman,
-		 rho_1,
-		 %rho_2,
+		 rho,
+		 brent,
 		 pollard_2,
 		 pollard_3]%,
 		 %naive_list_1,
@@ -65,10 +65,14 @@ fermat(_) ->
 	[101 * 109, 101 * 109] = F(101 * 101 * 109 * 109),
 	ok.
 
-rho_1(_) ->
+rho(_) ->
 	274177 = factor:rho(1 bsl 64 + 1),
 	
 	% TODO: find a value of N that fails to be factored
+	ok.
+
+brent(_) ->
+	274177 = factor:rho(1 bsl 64 + 1),
 	ok.
 
 pollard_2(_) ->

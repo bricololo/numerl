@@ -1,7 +1,8 @@
 -module(factor).
 
--export([naive/1, naive/2, fermat/1, lehman/1, rho/1, rho/2, pollard/2]).
--export([pollard/3, naive_list/1, naive_list/2, naive_list/3]).
+-export([naive/1, naive/2, fermat/1, lehman/1, rho/1, rho/2]).
+-export([brent/1, brent/2, pollard/2, pollard/3]).
+-export([naive_list/1, naive_list/2, naive_list/3]).
 
 %%%
 %%% exported functions
@@ -43,12 +44,18 @@ lehman(N) ->
 	end.
 
 % Pollard rho algorithm
-rho(N) -> rho(N, 1).
+rho(N) -> rho(N, -1).
 
 rho(N, B) ->
-	F = fun (X) -> (X * X + B) rem N end,
+	F = fun(X) -> (X * X + B) rem N end,
 	Y = F(2),
 	rho2(N, F, 2, Y, numerl:gcd(N, Y - 2)).
+
+brent(N) -> brent(N, -1).
+
+brent(N, B) ->
+	F = fun(X) -> (X * X + B) rem N end,
+	brent2(N, F, 2, 2, 1, 2).
 
 % Pollard p-1 first stage algorithm
 % TODO: what is a right default value for B ?
@@ -141,3 +148,31 @@ rho2(N, F, X, Y, A, C) ->
 	U = F(X),
 	V = F(F(Y)),
 	rho2(N, F, U, V, (A * abs(U - V)) rem N, C - 1).
+
+brent(N, F, X, _, K, K) -> brent(N, F, X, X, K, K bsl 1);
+brent(N, F, X, Y, I, K) ->
+	NX = F(X),
+	case numerl:gcd(N, Y - NX) of
+		1 -> brent(N, F, NX, Y, I + 1, K);
+		N -> brent(N, F, NX, Y, I + 1, K);
+		G -> G
+	end.
+
+% brent but grouping 50 iterations before taking a GCD to improve speed slightly
+brent2(N, F, X, _, K, K) -> brent2(N, F, X, X, K, K bsl 1);
+brent2(N, F, X, Y, I, K) ->
+	L = min(K - I, 50),
+	case brent_2(N, F, X, Y, 1, L) of
+		{1, NX} -> brent2(N, F, NX, Y, I + L, K);
+		{0, _} -> brent(N, F, X, Y, I, K);
+		{P, NX} ->
+			case numerl:gcd(N, P) of
+				1 -> brent2(N, F, NX, Y, I + L, K);
+				G -> G
+			end
+	end.
+
+brent_2(_, _, X, _, P, 0) -> {P, X};
+brent_2(N, F, X, Y, P, C) ->
+	NX = F(X),
+	brent_2(N, F, NX, Y, (P * (Y - NX)) rem N, C - 1).
