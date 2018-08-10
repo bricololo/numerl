@@ -72,7 +72,7 @@ rho(_) ->
 	ok.
 
 brent(_) ->
-	274177 = factor:rho(1 bsl 64 + 1),
+	274177 = factor:brent(1 bsl 64 + 1),
 	ok.
 
 pollard_2(_) ->
