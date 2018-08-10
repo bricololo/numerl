@@ -12,7 +12,7 @@ groups() ->
 		[naive_1,
 		 naive_2,
 		 fermat,
-		 %lehman,
+		 lehman,
 		 rho,
 		 brent,
 		 pollard_2,
@@ -90,4 +90,12 @@ pollard_3(_) ->
 	% Mersenne_101 :)
 	Mers_101 = 1 bsl 101 - 1,
 	7432339208719 = factor:pollard(Mers_101, 280000, 3),
+	ok.
+
+lehman(_) ->
+	F = fun(N) -> factor:lehman(N) end,
+
+	299155897 = F(1123877887715932507),
+	43655660929 = F(1129367102454866881),
+	372173423 = F(29742315699406748437),
 	ok.

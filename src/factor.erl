@@ -35,10 +35,14 @@ fermat(N) ->
 		{true, S} -> [S, S]
 	end.
 
+% some test values from Lehman article:
+% 1123877887715932507 -> 299155897 (k=23220)
+% 1129367102454866881 -> 25869889 (k = 6750)
+% 29742315699406748437 -> 372173423 (k=25982)
 lehman(N) ->
 	B = numerl:icubrt(N),
 	case naive_list(N, B, primes:list(B)) of
-		{B, N, []} -> lehman(N, B + 1, 1);
+		{B, N, []} -> lehman_odd(N, B, 1);
 		{_, _, [H | _]} -> H;
 		[H | _] -> H
 	end.
@@ -109,22 +113,6 @@ fermat(N, R) ->
 		{true, S} -> [R + S, R - S]
 	end.
 
-lehman(_, B, K) when K > B -> prime;
-lehman(N, B, K) ->
-	L = 2 * numerl:isqrt(K * N),
-	H = L + (numerl:iroot(N, 6) + 1) div (4 * numerl:isqrt(K)),
-	case lehman_sq(N, 4 * K * N, L, H) of
-		nope -> lehman(N, B, K + 1);
-		G -> G
-	end.
-
-lehman_sq(_, _, A, H) when A > H -> nope;
-lehman_sq(N, Cst, A, H) ->
-	case numerl:is_square(A * A - Cst) of
-		{true, B} -> numerl:gcd(A + B, N);
-		_ -> lehman_sq(N, Cst, A + 1, H)
-	end.
-
 rho(N, F, X, Y, 1) ->
 	U = F(X),
 	V = F(F(Y)),
@@ -176,3 +164,35 @@ brent_2(_, _, X, _, P, 0) -> {P, X};
 brent_2(N, F, X, Y, P, C) ->
 	NX = F(X),
 	brent_2(N, F, NX, Y, (P * (Y - NX)) rem N, C - 1).
+
+lehman_odd(_, B, K) when K > B -> prime;
+lehman_odd(N, B, K) ->
+	Cst = 4 * K * N,
+	L = numerl:isqrt(Cst),
+	R = (K + N) band 3,
+	case lehman_a(start_a(L, R, 4), Cst + B * B, 4, Cst) of
+		nope -> lehman_even(N, B, K + 1);
+		G -> numerl:gcd(N, G)
+	end.
+
+lehman_even(_, B, K) when K > B -> prime;
+lehman_even(N, B, K) ->
+	Cst = 4 * K * N,
+	L = numerl:isqrt(Cst),
+	case lehman_a(start_a(L, 1, 2), Cst + B * B, 2, Cst) of
+		nope -> lehman_odd(N, B, K + 1);
+		G -> numerl:gcd(N, G)
+	end.
+
+lehman_a(A, Max, _, _) when A * A > Max -> nope;
+lehman_a(A, Max, Inc, Cst) ->
+	case numerl:is_square(A * A - Cst) of
+		false -> lehman_a(A + Inc, Max, Inc, Cst);
+		{true, B} -> A + B
+	end.
+
+start_a(S, R, M) ->
+	case S rem M of
+		R -> S;
+		V -> S + R - V
+	end.
