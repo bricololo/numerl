@@ -8,19 +8,13 @@
 all() -> [{group, exported}].
 
 groups() ->
-	[{exported,
-		[shuffle],
-		[gcd,
-%		 egcd,
-		 is_square,
-		 isqrt,
-		 icubrt,
-		 iroot]
-%		 ipow,
-%		 ipowm,
-%		 jacobi]
-	 },
-	 {internal, [shuffle], []}].
+	[
+		{exported,
+			[shuffle],
+			[gcd, egcd, is_square, isqrt, icubrt, iroot, jacobi]
+		},
+		{internal, [shuffle], []}
+	].
 
 gcd(_) ->
 	Gcd = fun(A, B) -> numerl:gcd(A, B) end,
@@ -41,6 +35,15 @@ gcd(_) ->
 
 	900000000090000000009 =
 		Gcd(12345678901234567890123456789, 98765432109876543210987654321),
+	ok.
+
+egcd(_) ->
+	F = fun(A,B) -> numerl:egcd(A, B) end,
+
+	{5, 0, 1} = F(0, 5),
+	{5, 1, 0} = F(5, 0),
+	{1, -50, 51} = F(103, 101),
+	{5, -1, -1} = F(20, -25),
 	ok.
 
 is_square(_) ->

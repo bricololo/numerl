@@ -102,7 +102,11 @@ jacobi(A, M) -> jacobi(abs(A rem M), M, 1).
 euclid(A, 0) -> A;
 euclid(A, B) -> euclid(B, A rem B).
 
-egcd(A, B, D, U, _, 0) -> {D, U, (D - A * U) div B};
+egcd(A, B, D, U, _, 0) ->
+	case D >= 0 of
+		true -> {D, U, (D - A * U) div B};
+		false -> {-D, -U, (A * U - D) div B}
+	end;
 egcd(A, B, D, U, V, R) ->
 	Q = D div R,
 	egcd(A, B, R, V, U - Q * V, D rem R).
