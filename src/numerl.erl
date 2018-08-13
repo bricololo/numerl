@@ -93,6 +93,9 @@ ipowm(N, P, M) -> ipowm(N, P, M, 1).
 -spec jacobi(A :: integer, M :: integer) -> integer().
 % @doc
 % Jacobi-Legendre symbol (M is supposed to be odd, caller has to ensure that)
+% jacobi(A, M) = 0 <=> gcd(A, M) =/= 1,
+% jacobi(A, M) = 1 <=> A is a square mod M
+% jacobi(A, M) = -1 <=> A is not a square mod M
 jacobi(A, M) -> jacobi(abs(A rem M), M, 1).
 
 %%%

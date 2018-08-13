@@ -11,7 +11,8 @@ groups() ->
 	[
 		{exported,
 			[shuffle],
-			[gcd, egcd, is_square, isqrt, icubrt, iroot, jacobi]
+			[gcd, egcd, is_square, isqrt, icubrt, iroot, ipow,
+				ipowm, jacobi]
 		},
 		{internal, [shuffle], []}
 	].
@@ -107,6 +108,45 @@ iroot(_) ->
 	N = rand:uniform(?Large),
 	R = Iroot(N, P),
 	true = root_check(N, R, P),
+	ok.
+
+ipow(_) ->
+	F = fun(N, P) -> numerl:ipow(N, P) end,
+	N = 1234567890,
+
+	undefined = F(0, 0),
+	0 = F(0, N),
+	1 = F(N, 0),
+	%1 = F(1, N),
+	N = F(N, 1),
+	1 = F(-1, N),
+	-1 = F(-1, N + 1),
+	ok.
+
+ipowm(_) ->
+	F = fun(N, P) -> numerl:ipowm(N, P, 1024) end,
+	N = 1234567890,
+	P = 123456789012345678949, % a prime larger than 2^64
+
+	undefined = F(0, 0),
+	0 = F(0, N),
+	1 = F(N, 0),
+	1 = F(1, N),
+	1 = numerl:ipowm(2, P - 1, P),
+	ok.
+
+jacobi(_) ->
+	F = fun(A, P) -> numerl:jacobi(A, P) end,
+
+	0 = F(5, 25),
+	0 = F(10, 25),
+
+	1 = F(1, 47),
+	1 = F(2, 47),
+
+	-1 = F(5, 47),
+	-1 = F(10, 47),
+
 	ok.
 
 root_check(N, R, P) ->
