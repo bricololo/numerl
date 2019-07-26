@@ -1,6 +1,6 @@
 -module(pq).
 
--export([new/2, val/1, add/2, bump/2]).
+-export([new/2, val/1, add/2, bump/2, bumpt/4]).
 
 new(Cur, Next) -> {Cur, Next, empty}.
 
