@@ -26,7 +26,7 @@ strong_test(N) -> strong_test(N, 2).
 strong_test(N, B) ->
 	S = num_util:p2(N - 1),
 	T = N bsr S,
-	case numerl:ipown(B, T, N) of
+	case numerl:ipowm(B, T, N) of
 		1 -> true;
 		N1 when N1 =:= N - 1 -> true;
 		A ->
@@ -54,6 +54,8 @@ lucas_test(N, A, B) ->
 			end
 	end.
 
+% do not use this test as a standalone one, but see it as a fast way to seed
+% out most of the composite numbers
 no_small_div_test(N) ->
 	case numerl:gcd(614889782588491410, N) of % up to 47
 		1 ->
@@ -76,9 +78,9 @@ trial_div_test(N, List) -> trial_div_test(N, numerl:isqrt(N), List).
 % rabin miller primality testing
 rabin_miller_test(N) -> rabin_miller_test(N, 20).
 rabin_miller_test(N, C) ->
-	T = num_util:p2(N - 1),
-	Q = N bsr T,
-	r_m(N, Q, T, C).
+	S = num_util:p2(N - 1),
+	T = N bsr S,
+	r_m(N, T, S, C).
 
 % a probalistic test.
 is_prime(N) -> is_prime(N, 20).
@@ -137,12 +139,15 @@ strong_test(B, S, N) ->
 		E -> strong_test(E, S - 1, N)
 	end.
 
+% Something wrong with my implementation of this test: it seems to always
+% returns false
+% TODO : fix it.
 lucas_test(N, A, B, D) ->
 	E = numerl:jacobi(D, N),
-	{F1, F2} = misc:fast_fibm(N - E),
+	{F1, F2} = misc:fast_fibm(N - E, N),
 	case (A * F1 + B * F2) rem N of
 		0 -> true;
-		_ -> false
+		_ -> {false, A, B}
 	end.
 
 trial_div_test(_, Lim, [H | _]) when H > Lim -> true;

@@ -61,16 +61,15 @@ sieve(Comp, N, P_lim, Lim, Primes, W) ->
 	end.
 
 % sieving out the composites until we reach the target
-sieve(_, N, Lim, {_, Acc}, _) when N > Lim -> Acc;
-sieve(_, N, Lim, Primes, _) when N > Lim, is_list(Primes) ->
-	lists:reverse(Primes);
-sieve(_, N, Lim, Primes, _) when N > Lim -> Primes;
-sieve(Comp, N, Lim, Primes, W) ->
+sieve(Comp, N, Lim, Primes, W) when N =< Lim ->
 	{Inc, W2} = wheel:next(W),
 	case pq:val(Comp) of
 		N -> sieve(pq:bump(Comp, N), N + Inc, Lim, Primes, W2);
 		_ -> sieve(Comp, N + Inc, Lim, ins(N, Primes), W2)
-	end.
+	end;
+sieve(_, _, _, {_, Acc}, _) -> Acc;
+sieve(_, _, _, Primes, _) when is_list(Primes) -> lists:reverse(Primes);
+sieve(_, _, _, Primes, _) -> Primes.
 
 ins(N, {Fun, Acc}) -> {Fun, Fun(N, Acc)};
 ins(N, Primes) when is_list(Primes) -> [N | Primes];

@@ -9,7 +9,7 @@ all() -> [{group, exported}].
 groups() ->
 	[{exported,
 		[shuffle],
-		[naive_1, naive_2, fermat, lehman, rho, brent, pollard_2, pollard_3]
+		[naive_1, naive_2, fermat, lehman, rho, brent, pollard]
 	},
 	{internal, [shuffle], []}].
 
@@ -91,4 +91,10 @@ lehman(_) ->
 	%299155897 = F(1123877887715932507),
 	%43655660929 = F(1129367102454866881),
 	372173423 = F(29742315699406748437),
+	ok.
+
+pollard(_) ->
+	F = fun(N, B, S) -> factor:pollard(N, B, S) end,
+
+	373587883 = F(67030883744037259, 1000, 2),
 	ok.

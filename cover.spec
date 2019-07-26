@@ -1,3 +1,3 @@
 {incl_dirs, ["./src/"]}.
-{incl_mods, [eratos, numerl, num_util, wheel, pq, factor]}.
+{incl_mods, [eratos, misc, numerl, num_util, primes, wheel, pq, factor]}.
 {level, details}.

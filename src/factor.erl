@@ -37,7 +37,7 @@ fermat(N) ->
 
 % some test values from Lehman article:
 % 1123877887715932507 -> 299155897 (k=23220)
-% 1129367102454866881 -> 25869889 (k = 6750)
+% 1129367102454866881 -> 25869889 (k=6750)
 % 29742315699406748437 -> 372173423 (k=25982)
 lehman(N) ->
 	B = numerl:icubrt(N),
@@ -100,7 +100,7 @@ naive_list(N, Limit, [], Acc) -> {Limit, N, lists:reverse(Acc)}.
 final(1, _, _, Acc) -> lists:reverse(Acc);
 final(N, Limit, Factor, Acc) ->
 	case Factor * Factor of
-		P when P > N, N =/= 1 -> lists:reverse([N | Acc]);
+		P when P > N -> lists:reverse([N | Acc]);
 		_ -> {Limit, N, lists:reverse(Acc)}
 	end.
 
