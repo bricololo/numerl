@@ -15,14 +15,15 @@ list(prime, From, To) ->
 	Start_from = prime:start_from(Start, From),
 	Comp = prime:fast_bump(Temp, element(1, Start_from)),
 	sieve(prime, Comp, Start_from, To,
-		lists:dropwhile(fun(X) -> X < From end, Acc));
+		lists:takewhile(fun(X) -> X >= From end, Acc));
 list(smooth, B, Lim) ->
 	{Bad, Start, Acc} = smooth:init_pq(B, Lim),
 	sieve(smooth, Bad, Start, Lim, Acc);
 list(power_smooth, B, Lim) -> list(power_smooth, B, B, Lim).
 
 list(smooth, B, From, To) ->
-	{Bad, Start, Acc} = smooth:init_pq(B, {From, To}),
+	{Tmp, Start, Acc} = smooth:init_pq(B, {From, To}),
+	Bad = smooth:fast_bump(Tmp, From),
 	sieve(smooth, Bad, Start, To, Acc);
 list(power_smooth, B1, B2, Lim) ->
 	{Bad, Start, Acc} = power_smooth:init_pq({B1, B2}, Lim),

@@ -42,12 +42,13 @@ start_from({Val, Wheel} = Lazy, From) ->
 		Large -> start_from({Val + 210 * (Large div 210), Wheel}, From)
 	end.
 
-fast_bump({Cur, Next, Size, Heap} = Comp, From) ->
+fast_bump({Cur, _, _, Heap} = Comp, From) ->
 	case pq:val(Comp) of
 		Large when Large >= From -> Comp;
 		Small ->
 			Fast_next = fun(X) -> fast_next(X, From) end,
-			fast_bump({Cur,Next,Size,pq:bumpt(Heap,Small,Cur,Fast_next)},From)
+			N_comp = setelement(4, Comp, pq:bumpt(Heap, Small, Cur, Fast_next)),
+			fast_bump(N_comp, From)
 	end.
 
 %
