@@ -32,7 +32,8 @@ list(power_smooth, B1, B2, Lim) ->
 
 %list(smooth, B, B2, From, To) ->
 list(power_smooth, B1, B2, From, To) ->
-	{Bad, _, Acc} = power_smooth:init_pq({B1, B2}, To),
+	{Tmp, _, Acc} = power_smooth:init_pq({B1, B2}, To),
+	Bad = power_smooth:fast_bump(Tmp, From),
 	sieve(power_smooth, Bad, From, To, Acc).
 
 ets(prime, Lim, Tid) ->

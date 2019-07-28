@@ -1,16 +1,13 @@
 -module(power_smooth).
 
 -export([init_pq/2, candidate/1, result/1, next_candidate/1, new_acc/2]).
+-export([fast_bump/2]).
 
+init_pq({B1, B2}, {_, To}) ->
+	init(pq:new(fun cur/1, fun next/1), filter(B1, B2, To));
 init_pq({B1, B2}, Lim) ->
-	Primes = sieve:list(prime, Lim),
-	{Small, Big} = lists:splitwith(fun(X) -> X =< B1 end, Primes),
-	{Medium, Large} = lists:splitwith(fun(X) -> X =< B2 end, Big),
-	F = lists:merge3(
-		filters(lists:reverse(Small), B1),
-		[X * X || X <- Medium],
-		Large),
-	init(pq:new(fun cur/1, fun next/1), F).
+	init(pq:new(fun cur/1, fun next/1), filter(B1, B2, Lim)).
+
 
 candidate(V) -> V.
 
@@ -20,6 +17,14 @@ next_candidate(N) -> N + 1.
 
 new_acc(Acc, V) -> [V | Acc].
 
+fast_bump({Cur, _, _, Heap} = Bad, From) ->
+	case pq:val(Bad) of
+		Large when Large >= From -> Bad;
+		Small ->
+			Fast_next = fun(X) -> fast_next(X, From) end,
+			N_bad = setelement(4, Bad, pq:bumpt(Heap, Small, Cur, Fast_next)),
+			fast_bump(N_bad, From)
+	end.
 %
 % internals
 %
@@ -28,8 +33,24 @@ cur({V, _}) -> V.
 
 next({V, Inc}) -> {V + Inc, Inc}.
 
+fast_next({V, Inc}, From) when V < From ->
+	case From - V of
+		Small when Small < Inc -> {V + Inc, Inc};
+		Large -> {V + Inc * (Large div Inc), Inc}
+	end;
+fast_next(E, _) -> E.
+
 init(Bad, [H | T]) -> init(pq:add(Bad, {H, H}), T);
 init(Bad, []) -> {Bad, 2, []}.
+
+filter(B1, B2, Lim) ->
+	Primes = sieve:list(prime, Lim),
+	{Small, Big} = lists:splitwith(fun(X) -> X =< B1 end, Primes),
+	{Medium, Large} = lists:splitwith(fun(X) -> X =< B2 end, Big),
+	lists:merge3(
+		filters(lists:reverse(Small), B1),
+		[X * X || X <- Medium],
+		Large).
 
 filters(Primes, B) ->
 	filter1(Primes, B, numerl:isqrt(B), []).
