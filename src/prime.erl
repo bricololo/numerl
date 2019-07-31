@@ -4,7 +4,7 @@
 
 -export([init_pq/2, candidate/1, result/1, next_candidate/1, new_acc/2]).
 
--export([start_from/2, fast_bump/2]).
+-export([start_from/2, fast_next/2]).
 
 %
 % sieve callback functions
@@ -32,6 +32,14 @@ next_candidate({V, Wheel}) ->
 
 new_acc(Acc, N) -> ins(N, Acc).
 
+fast_next({Prime, Wheel, M} = E, From) when M < From ->
+	Lim = 210 * Prime,
+	case From - M of
+		Small when Small < Lim -> fast_next(next(E), From);
+		Large -> fast_next({Prime, Wheel, M + Lim * (Large div Lim)}, From)
+	end;
+fast_next(E, _) -> E.
+
 %
 % extra functions
 %
@@ -40,15 +48,6 @@ start_from({Val, Wheel} = Lazy, From) ->
 	case From - Val of
 		Small when Small < 210 -> start(Lazy, From);
 		Large -> start_from({Val + 210 * (Large div 210), Wheel}, From)
-	end.
-
-fast_bump({Cur, _, _, Heap} = Comp, From) ->
-	case pq:val(Comp) of
-		Large when Large >= From -> Comp;
-		Small ->
-			Fast_next = fun(X) -> fast_next(X, From) end,
-			N_comp = setelement(4, Comp, pq:bumpt(Heap, Small, Cur, Fast_next)),
-			fast_bump(N_comp, From)
 	end.
 
 %
@@ -77,15 +76,6 @@ next({Prime, Wheel, M}) ->
 	{Inc, W2} = wheel:next(Wheel),
 	{Prime, W2, Prime * Inc + M}.
 
-fast_next({Prime, Wheel, M} = E, From) when M < From ->
-	Lim = 210 * Prime,
-	case From - M of
-		Small when Small < Lim -> fast_next(next(E), From);
-		Large -> fast_next({Prime, Wheel, M + Lim * (Large div Lim)}, From)
-	end;
-fast_next(E, _) -> E.
-
-	
 % Acc handling
 ins(N, {_, _, From} = Result) when N < From -> Result;
 ins(N, {Fun, Acc, From}) -> {Fun, Fun(N, Acc), From};

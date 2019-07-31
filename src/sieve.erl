@@ -8,12 +8,15 @@
 
 list(prime, Lim) ->
 	{Comp, Start, Acc} = prime:init_pq(Lim, [7, 5, 3, 2]),
-	sieve(prime, Comp, Start, Lim, Acc).
+	sieve(prime, Comp, Start, Lim, Acc);
+list(squarefree, Lim) ->
+	{Bad, Start, Acc} = squarefree:init_pq(Lim),
+	sieve(squarefree, Bad, Start, Lim, Acc).
 
 list(prime, From, To) ->
 	{Temp, Start, Acc} = prime:init_pq(To, [7, 5, 3, 2]),
 	Start_from = prime:start_from(Start, From),
-	Comp = prime:fast_bump(Temp, element(1, Start_from)),
+	Comp = fast_bump(prime, Temp, element(1, Start_from)),
 	sieve(prime, Comp, Start_from, To,
 		lists:takewhile(fun(X) -> X >= From end, Acc));
 list(smooth, B, Lim) ->
@@ -23,7 +26,7 @@ list(power_smooth, B, Lim) -> list(power_smooth, B, B, Lim).
 
 list(smooth, B, From, To) ->
 	{Tmp, Start, Acc} = smooth:init_pq(B, {From, To}),
-	Bad = smooth:fast_bump(Tmp, From),
+	Bad = fast_bump(smooth, Tmp, From),
 	sieve(smooth, Bad, Start, To, Acc);
 list(power_smooth, B1, B2, Lim) ->
 	{Bad, Start, Acc} = power_smooth:init_pq({B1, B2}, Lim),
@@ -33,7 +36,7 @@ list(power_smooth, B1, B2, Lim) ->
 %list(smooth, B, B2, From, To) ->
 list(power_smooth, B1, B2, From, To) ->
 	{Tmp, _, Acc} = power_smooth:init_pq({B1, B2}, To),
-	Bad = power_smooth:fast_bump(Tmp, From),
+	Bad = fast_bump(power_smooth, Tmp, From),
 	sieve(power_smooth, Bad, From, To, Acc).
 
 ets(prime, Lim, Tid) ->
@@ -44,7 +47,7 @@ ets(prime, Lim, Tid) ->
 ets(prime, From, To, Tid) ->
 	{Temp, Start, Acc} = prime:init_pq(To, Tid),
 	Start_from = prime:start_from(Start, From),
-	Comp = prime:fast_bump(Temp, element(1, Start_from)),
+	Comp = fast_bump(prime, Temp, element(1, Start_from)),
 	[ets:ins(Acc, {P, y}) || P <- [2, 3, 5, 7], P =< From],
 	sieve(prime, Comp, Start_from, To,
 		lists:dropwhile(fun(X) -> X < From end, Acc)).
@@ -79,4 +82,13 @@ sieve(Module, Bad, V, Lim, Acc) ->
 					N_Acc = Module:new_acc(Acc, Candidate),
 					sieve(Module, Bad, N_Cand, Lim, N_Acc)
 			end
+	end.
+
+fast_bump(Module, {Cur, _, _, Heap} = Bad, From) ->
+	case pq:val(Bad) of
+		Large when Large >= From -> Bad;
+		Small ->
+			Fast_next = fun(X) -> Module:fast_next(X, From) end,
+			N_bad = setelement(4, Bad, pq:bumpt(Heap, Small, Cur, Fast_next)),
+			fast_bump(Module, N_bad, From)
 	end.
