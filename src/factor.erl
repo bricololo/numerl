@@ -68,15 +68,15 @@ pollard(N, B) -> pollard(N, B, 2).
 pollard(N, B, S) -> pollard(N, B, S, eratos:sieve(B), 1).
 
 
-pollard(N, B, S, [H | P], L) when L * H > B ->
-	NS = numerl:ipowm(S, L, N),
-	case numerl:gcd(NS - 1, N) of
-		1 -> pollard(N, B, NS, P, 1);
+pollard(N, B, S, [H | P], L) when L * H > B -> pollard(N, B, S, P, 1);
+pollard(N, B, S, [H|_] = P, L) -> pollard(N, B, numerl:ipowm(S,H,N), P, L*H);
+pollard(N, B, S, [], _) ->
+	case numerl:gcd(S - 1, N) of
+		1 -> p_stage_2(N, B, B * 100, S);
 		N -> fail;
 		G -> G
-	end;
-pollard(N, B, S, [H | _] = P, L) -> pollard(N, B, S, P, L * H);
-pollard(N, B, S, [], _) -> p_stage_2(N, B, B * 100, S).
+	end,
+	p_stage_2(N, B, B * 100, S).
 
 % TODO:
 %  - right default value for B2?
