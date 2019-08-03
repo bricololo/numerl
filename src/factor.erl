@@ -75,8 +75,7 @@ pollard(N, B, S, [], _) ->
 		1 -> p_stage_2(N, B, B * 100, S);
 		N -> fail;
 		G -> G
-	end,
-	p_stage_2(N, B, B * 100, S).
+	end.
 
 % TODO:
 %  - right default value for B2?
@@ -91,7 +90,7 @@ io:format("stage 2 needed:~n~p ~p ~p ~p~n", [N, B1, B2, S]).
 naive_list(N, Limit, [H | _], Acc) when H > Limit -> final(N, Limit, H, Acc);
 naive_list(N, Limit, [H | T], Acc) when N rem H =:= 0 ->
 	{N2, Facts} = reduce(N div H, [H]),
-	naive_list(N2, Limit, T, Facts ++ Acc);
+	naive_list(N2, min(Limit, numerl:isqrt(N2)), T, Facts ++ Acc);
 naive_list(N, Limit, [_ | T], Acc) -> naive_list(N, Limit, T, Acc);
 naive_list(1, _, [], Acc) -> lists:reverse(Acc);
 naive_list(N, Limit, [], Acc) when N < Limit * Limit -> lists:reverse([N | Acc]);
