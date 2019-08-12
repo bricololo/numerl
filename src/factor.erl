@@ -31,7 +31,7 @@ fermat(N) ->
 	case numerl:is_square(N) of
 		false ->
 			R = numerl:isqrt(N),
-			fermat(N, R + 1);
+			fermat(N, (R + 1) * (R + 1), 2 * R + 3);
 		{true, S} -> [S, S]
 	end.
 
@@ -106,10 +106,13 @@ final(N, Limit, Factor, Acc) ->
 reduce(N, [F | T]) when N rem F =:= 0 -> reduce(N div F, [F, F | T]);
 reduce(N, L) -> {N, L}.
 
-fermat(N, R) ->
-	case numerl:is_square(R * R - N) of
-		false -> fermat(N, R + 1);
-		{true, S} -> [R + S, R - S]
+fermat(N, R, I) ->
+	T = R + I,
+	case numerl:is_square(T - N) of
+		false -> fermat(N, T, I + 2);
+		{true, S} ->
+			V = numerl:isqrt(T),
+			[V - S, V + S]
 	end.
 
 rho(N, F, X, Y, 1) ->

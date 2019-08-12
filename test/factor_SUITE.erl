@@ -46,11 +46,10 @@ naive_2(_) ->
 fermat(_) ->
 	F = fun(N) -> factor:fermat(N) end,
 
-	% note that the factors are not sorted.
-	[1999, 1009] = F(1009 * 1999),
+	[1009, 1999] = F(1009 * 1999),
 
 	% note that fermat returns two, not necessarily prime, factors
-	[103 * 107, 101 * 109] = F(101 * 103 * 107 * 109),
+	[101 * 107, 103 * 109] = F(101 * 103 * 107 * 109),
 
 	% detecting squares
 	[101, 101] = F(101 * 101),
