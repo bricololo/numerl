@@ -28,9 +28,9 @@ seed(Divs, C, Length, Count, Acc) ->
 	end.
 
 
-check([], C) -> C;
 check([H | _], C) when (C rem H) =:= 0 -> 0;
-check([_ | T], C) -> check(T, C).
+check([_ | T], C) -> check(T, C);
+check([], C) -> C.
 
 
 delta(L) ->
