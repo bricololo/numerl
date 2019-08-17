@@ -6,6 +6,8 @@
 	foldl/4, foldl/5
 	]).
 
+-export([fast_bump/3]).
+
 list(prime, Lim) ->
 	{Comp, Start, Acc} = prime:init_pq(Lim, [7, 5, 3, 2]),
 	sieve(prime, Comp, Start, Lim, Acc);
