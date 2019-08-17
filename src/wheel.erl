@@ -3,18 +3,13 @@
 -export([init/1, next/1]).
 
 
-init([3, 5 | [7 | Divs] = T]) ->
+init([3, 5, 7 | Divs]) ->
 	Length = lists:foldl(fun(E, L) -> E * L end, 210, Divs),
 	Notches =
-		lists:merge([
-			[Y || Y <- lists:seq(11, 10 + Length, 30), check(T, Y) =/= 0],
-			[Y || Y <- lists:seq(13, 12 + Length, 30), check(T, Y) =/= 0],
-			[Y || Y <- lists:seq(17, 16 + Length, 30), check(T, Y) =/= 0],
-			[Y || Y <- lists:seq(19, 18 + Length, 30), check(T, Y) =/= 0],
-			[Y || Y <- lists:seq(23, 22 + Length, 30), check(T, Y) =/= 0],
-			[Y || Y <- lists:seq(29, 28 + Length, 30), check(T, Y) =/= 0],
-			[Y || Y <- lists:seq(31, 30 + Length, 30), check(T, Y) =/= 0],
-			[Y || Y <- lists:seq(37, 36 + Length, 30), check(T, Y) =/= 0]]),
+		lists:merge(
+			[filter(P, Length, Divs) ||
+				P <- [11, 13, 17, 19, 23, 29, 31, 37]]),
+
 	{delta(Notches ++ [hd(Notches) + Length]), []};
 init(Divs) ->
 	Count = lists:foldl(fun(E, P) -> (E - 1) * P end, 1, Divs),
@@ -49,3 +44,7 @@ check([], C) -> C.
 
 delta(L) ->
 	[B - A || {A, B} <- lists:zip(lists:sublist(L, length(L) -1), tl(L))].
+
+
+filter(P, L, T) ->
+	[X || X <- lists:seq(P, P - 1 + L, 30), X rem 7 =/= 0, check(T, X) =/= 0].
