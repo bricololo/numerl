@@ -10,7 +10,7 @@
 -spec sieve(N :: integer()) -> [integer()].
 % @doc
 % compute the list of all primes up to N
-sieve(N) -> sieve(N, [7, 5, 3, 2]).
+sieve(N) -> sieve(N, primes(N)).
 
 -spec sieve(N :: integer, P :: [integer()] | tab()) -> [integer()] | tab().
 % @doc
@@ -18,12 +18,13 @@ sieve(N) -> sieve(N, [7, 5, 3, 2]).
 % to the type of the second argument.
 sieve(N, Primes) ->
 	P_lim = numerl:isqrt(N),
-	W = wheel:init([3, 5, 7]),
+	P_list = case is_list(Primes) of true -> Primes; false -> primes(N) end,
+	W = wheel:init(tl(lists:reverse(P_list))),
 	case is_list(Primes) of
 		true -> ok;
-		_ -> ets:insert(Primes, [{2, y}, {3, y}, {5, y}, {7, y}])
+		_ -> ets:insert(Primes, [{P, y} || P <- P_list])
 	end,
-	sieve(pq:new(fun cur/1, fun next/1), 11, P_lim, N, Primes, W).
+	sieve(pq:new(fun cur/1, fun next/1), first(P_list), P_lim, N, Primes, W).
 
 -spec foldl(N :: pos_integer(), Fun :: function, Acc :: term()) -> term().
 % @doc
@@ -38,6 +39,16 @@ foldl(N, Fun, Acc) ->
 %%%
 %%% internals
 %%%
+
+primes(N) when N =< 10000 -> [7, 5, 3, 2];
+primes(N) when N =< 100000 -> [11, 7, 5, 3, 2];
+primes(N) when N =< 1000000 -> [13, 11, 7, 5, 3, 2];
+primes(N) when N =< 10000000 -> [17, 13, 11, 7, 5, 3, 2];
+primes(N) when N =< 100000000 -> [19, 17, 13, 11, 7, 5, 3, 2];
+primes(_) -> [7, 5, 3, 2]. % small wheel to limit swapping
+
+first([23 | _]) -> 29;
+first([H | _]) when H < 31 -> H + 5 - (H rem 6 + 1) div 2.
 
 % Comp is a sorted heap of known composites
 % N is a prime candidate
