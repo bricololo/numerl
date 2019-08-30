@@ -1,6 +1,7 @@
 -module(split).
 
 -export([fermat/3, fermat_cont/2]).
+-export([hart/2]).
 -export([rho/5, rho_cont/2]).
 -export([brent/6, brent_cont/2]).
 
@@ -26,6 +27,8 @@ fermat(N, Square, Inc) ->
 			{[V - Square_root, V + Square_root], {Next_square, Next_inc}}
 	end.
 
+
+hart(N, Lim) -> hart(N, Lim, 1).
 
 rho_cont(N, {Fun, X, Y, Gcd}) -> rho(N, Fun, X, Y, Gcd).
 
@@ -57,6 +60,17 @@ brent(N, Fun, X, Y, Iter, Power) ->
 %
 % Implementation
 %
+
+hart(N, Lim, I) when I =< Lim ->
+	G = N * I,
+	Tmp = numerl:isqrt(G),
+	S = case Tmp * Tmp of G -> Tmp; _ -> Tmp + 1 end,
+	M = (S * S) rem N,
+	case numerl:is_square(M) of
+		{true, T} -> {[numerl:gcd(N, abs(S - T))], {I, Lim}};
+		_ -> hart(N, Lim, I + 1)
+	end;
+hart(_, _, _) -> fail.
 
 rho(_, _, X, Y, Gcd, 0) -> {Gcd, X, Y};
 rho(N, Fun, X, Y, Gcd, Count) ->

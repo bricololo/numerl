@@ -9,7 +9,7 @@ all() -> [{group, exported}].
 groups() ->
 	[{exported,
 		[shuffle],
-		[naive_1, naive_2, fermat, lehman, rho, brent, pollard]
+		[naive_1, naive_2, fermat, hart, lehman, rho, brent, pollard]
 	},
 	{internal, [shuffle], []}].
 
@@ -41,6 +41,20 @@ naive_1(_) ->
 naive_2(_) ->
 	% fix a limit smaller than sqrt(N)
 	[2, 3, 5, 7] = factor:naive(210, 8),
+	ok.
+
+hart(_) ->
+	F = fun(N) -> factor:hart(N) end,
+
+	{[3119], {165, 236}} = F(13290059),
+
+	G = fun(N) -> split:hart(N, numerl:icubrt(N)) end,
+
+	P = numerl:ipow(10, 200) + 357,
+	Q = numerl:ipow(10, 201) + 97,
+	{[Q], {40, _}} = G(P * Q),
+	{[Q], {40, 50}} = split:hart(P * Q, 50),
+
 	ok.
 
 fermat(_) ->

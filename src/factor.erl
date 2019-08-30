@@ -1,7 +1,7 @@
 -module(factor).
 
--export([naive/1, naive/2, fermat/1, lehman/1, rho/1, rho/2]).
--export([brent/1, brent/2, pollard/2, pollard/3]).
+-export([naive/1, naive/2, fermat/1, hart/1, lehman/1, rho/1, rho/2, rho/3]).
+-export([brent/1, brent/2, brent/3, pollard/2, pollard/3]).
 -export([naive_list/1, naive_list/2, naive_list/3]).
 
 %%%
@@ -34,6 +34,18 @@ fermat(N) ->
 			T = R + 1,
 			element(1, split:fermat(N, T * T, 2 * T + 1));
 		{true, S} -> [S, S]
+	end.
+
+hart(N) ->
+	case numerl:is_square(N) of
+		false ->
+			B = numerl:icubrt(N),
+			case naive_list(N, B, eratos:sieve(B)) of
+				{B, N, []} -> split:hart(N, B);
+				{_, _, [H | _]} -> H;
+				[H | _] -> H
+			end;
+		{true, Square_root} -> Square_root
 	end.
 
 % some test values from Lehman article:
