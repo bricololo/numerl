@@ -57,13 +57,13 @@ fermat(_) ->
 	ok.
 
 rho(_) ->
-	274177 = factor:rho(1 bsl 64 + 1),
+	{[274177], _} = factor:rho(1 bsl 64 + 1),
 
 	% TODO: find a value of N that fails to be factored
 	ok.
 
 brent(_) ->
-	274177 = factor:brent(1 bsl 64 + 1),
+	{[274177], _} = factor:brent(1 bsl 64 + 1),
 	ok.
 
 pollard_2(_) ->

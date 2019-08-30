@@ -31,7 +31,8 @@ fermat(N) ->
 	case numerl:is_square(N) of
 		false ->
 			R = numerl:isqrt(N),
-			fermat(N, (R + 1) * (R + 1), 2 * R + 3);
+			T = R + 1,
+			element(1, split:fermat(N, T * T, 2 * T + 1));
 		{true, S} -> [S, S]
 	end.
 
@@ -50,16 +51,20 @@ lehman(N) ->
 % Pollard rho algorithm
 rho(N) -> rho(N, -1).
 
-rho(N, B) ->
-	F = fun(X) -> (X * X + B) rem N end,
-	Y = F(2),
-	rho2(N, F, 2, Y, numerl:gcd(N, Y - 2)).
+rho(N, B) -> rho(N, B, 2).
+
+rho(N, B, Start) ->
+	Fun = fun(X) -> (X * X + B) rem N end,
+	Y = Fun(Start),
+	split:rho(N, Fun, Start, Y, numerl:gcd(N, abs(Y - Start))).
 
 brent(N) -> brent(N, -1).
 
-brent(N, B) ->
-	F = fun(X) -> (X * X + B) rem N end,
-	brent2(N, F, 2, 2, 1, 2).
+brent(N, B) -> brent(N, B, 2).
+
+brent(N, B, Start) ->
+	Fun = fun(X) -> (X * X + B) rem N end,
+	split:brent(N, Fun, Start, 2, 1, 2).
 
 % Pollard p-1 first stage algorithm
 % TODO: what is a right default value for B ?
@@ -105,67 +110,6 @@ final(N, Limit, Factor, Acc) ->
 
 reduce(N, [F | T]) when N rem F =:= 0 -> reduce(N div F, [F, F | T]);
 reduce(N, L) -> {N, L}.
-
-fermat(N, R, I) ->
-	T = R + I,
-	case numerl:is_square(T - N) of
-		false -> fermat(N, T, I + 2);
-		{true, S} ->
-			V = numerl:isqrt(T),
-			[V - S, V + S]
-	end.
-
-rho(N, F, X, Y, 1) ->
-	U = F(X),
-	V = F(F(Y)),
-	rho(N, F, U, V, numerl:gcd(N, U - V));
-rho(N, _, _, _, N) -> fail;
-rho(_, _, _, _, G) -> G.
-
-% rho but grouping 50 iterations before taking a GCD to improve speed sligthly
-rho2(N, F, X, Y, G) ->
-	case rho2(N, F, X, Y, G, 50) of
-		{1, U, V} -> rho2(N, F, U, V, 1, 50);
-		{D, U, V} ->
-			case numerl:gcd(N, D) of
-				1 -> rho2(N, F, U, V, 1);
-				_ -> rho(N, F, X, Y, 1)
-			end
-	end.
-
-rho2(_, _, X, Y, A, 0) -> {A, X, Y};
-rho2(N, F, X, Y, A, C) ->
-	U = F(X),
-	V = F(F(Y)),
-	rho2(N, F, U, V, (A * abs(U - V)) rem N, C - 1).
-
-brent(N, F, X, _, K, K) -> brent(N, F, X, X, K, K bsl 1);
-brent(N, F, X, Y, I, K) ->
-	NX = F(X),
-	case numerl:gcd(N, Y - NX) of
-		1 -> brent(N, F, NX, Y, I + 1, K);
-		N -> brent(N, F, NX, Y, I + 1, K);
-		G -> G
-	end.
-
-% brent but grouping 50 iterations before taking a GCD to improve speed slightly
-brent2(N, F, X, _, K, K) -> brent2(N, F, X, X, K, K bsl 1);
-brent2(N, F, X, Y, I, K) ->
-	L = min(K - I, 50),
-	case brent_2(N, F, X, Y, 1, L) of
-		{1, NX} -> brent2(N, F, NX, Y, I + L, K);
-		{0, _} -> brent(N, F, X, Y, I, K);
-		{P, NX} ->
-			case numerl:gcd(N, P) of
-				1 -> brent2(N, F, NX, Y, I + L, K);
-				G -> G
-			end
-	end.
-
-brent_2(_, _, X, _, P, 0) -> {P, X};
-brent_2(N, F, X, Y, P, C) ->
-	NX = F(X),
-	brent_2(N, F, NX, Y, (P * (Y - NX)) rem N, C - 1).
 
 lehman_odd(_, B, K) when K > B -> prime;
 lehman_odd(N, B, K) ->
