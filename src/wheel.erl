@@ -46,13 +46,5 @@ delta(L) ->
 	[B - A || {A, B} <- lists:zip(lists:sublist(L, length(L) -1), tl(L))].
 
 
-%filter(P, L, T) ->
-%	[X || X <- lists:seq(P, P - 1 + L, 30), X rem 7 =/= 0, check(T, X) =/= 0].
-
 filter(P, L, T) ->
-	filter(T, [X || X <- lists:seq(P, P - 1 + L, 30), X < 49 orelse X rem 7 =/= 0]).
-
-filter([H | T], L) ->
-	H2 = H * H,
-	filter(T, [X || X <- L, X < H2 orelse X rem H =/= 0]);
-filter([], L) -> L.
+	[X || X <- lists:seq(P, P - 1 + L, 30), X rem 7 =/= 0, check(T, X) =/= 0].
