@@ -2,6 +2,7 @@
 
 -export([fermat/3, fermat_cont/2]).
 -export([hart/2]).
+-export([lehman_odd/3, lehman_even/3]).
 -export([rho/5, rho_cont/2]).
 -export([brent/6, brent_cont/2]).
 
@@ -30,16 +31,21 @@ fermat(N, Square, Inc) ->
 
 hart(N, Lim) -> hart(N, Lim, 1).
 
-rho_cont(N, {Fun, X, Y, Gcd}) -> rho(N, Fun, X, Y, Gcd).
+lehman_odd(N, B, K) ->
+	Cst = 4 * K * N,
+	L = numerl:isqrt(Cst),
+	R = (K + N) band 3,
+	case lehman_a(start_a(L, R, 4), Cst + B * B, 4, Cst) of
+		nope -> lehman_even(N, B, K + 1);
+		G -> {[numerl:gcd(N, G)], K}
+	end.
 
-rho(N, Fun, X, Y, Gcd) ->
-	case rho(N, Fun, X, Y, Gcd, ?RHO_ITER) of
-		{1, U, V} -> rho(N, Fun, U, V, 1, ?RHO_ITER);
-		{D, U, V} ->
-			case numerl:gcd(N, D) of
-				1 -> rho(N, Fun, U, V, 1);
-				_ -> rho_bt(N, Fun, X, Y, 1)
-			end
+lehman_even(N, B, K) ->
+	Cst = 4 * K * N,
+	L = numerl:isqrt(Cst),
+	case lehman_a(start_a(L, 1, 2), Cst + B * B, 2, Cst) of
+		nope -> lehman_odd(N, B, K + 1);
+		G -> {[numerl:gcd(N, G)], K}
 	end.
 
 brent_cont(N, {Fun,Start,Y,Iter,Power}) -> brent(N, Fun, Start, Y, Iter, Power).
@@ -72,6 +78,30 @@ hart(N, Lim, I) when I =< Lim ->
 	end;
 hart(_, _, _) -> fail.
 
+lehman_a(A, Max, _, _) when A * A > Max -> nope;
+lehman_a(A, Max, Inc, Cst) ->
+	case numerl:is_square(A * A - Cst) of
+		false -> lehman_a(A + Inc, Max, Inc, Cst);
+		{true, B} -> A + B
+	end.
+
+start_a(S, R, M) ->
+	case S rem M of
+		R -> S;
+		V -> S + R - V
+	end.
+
+rho_cont(N, {Fun, X, Y, Gcd}) -> rho(N, Fun, X, Y, Gcd).
+
+rho(N, Fun, X, Y, Gcd) ->
+	case rho(N, Fun, X, Y, Gcd, ?RHO_ITER) of
+		{1, U, V} -> rho(N, Fun, U, V, 1, ?RHO_ITER);
+		{D, U, V} ->
+			case numerl:gcd(N, D) of
+				1 -> rho(N, Fun, U, V, 1);
+				_ -> rho_bt(N, Fun, X, Y, 1)
+			end
+	end.
 rho(_, _, X, Y, Gcd, 0) -> {Gcd, X, Y};
 rho(N, Fun, X, Y, Gcd, Count) ->
 	U = Fun(X),

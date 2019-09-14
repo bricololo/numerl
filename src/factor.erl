@@ -11,13 +11,13 @@
 % simply try all the prime numbers up to min(sqrt(N), 500000)
 naive(2) -> [2];
 naive(3) -> [3];
-naive(N) -> naive(N, 500000).
+naive(N) -> naive(N, ?DEFAULT_LIMIT).
 
 % simply try all the prime numbers up to min(sqrt(N), Limit)
 naive(N, Limit) -> naive_list(N, min(Limit, numerl:isqrt(N) + 1)).
 
 % equivalent to naive/1
-naive_list(N) -> naive_list(N, 500000).
+naive_list(N) -> naive_list(N, ?DEFAULT_LIMIT).
 
 % equivalent to naive/2
 naive_list(N, Limit) -> naive_list(N, Limit, primes:list(Limit)).
@@ -41,7 +41,7 @@ hart(N) ->
 		false ->
 			B = numerl:icubrt(N),
 			case naive_list(N, B, eratos:sieve(B)) of
-				{B, N, []} -> split:hart(N, B);
+				{B, N, []} -> split:hart(N, min(B, ?DEFAULT_LIMIT));
 				{_, _, [H | _]} -> H;
 				[H | _] -> H
 			end;
@@ -55,7 +55,7 @@ hart(N) ->
 lehman(N) ->
 	B = numerl:icubrt(N),
 	case naive_list(N, B, primes:list(B)) of
-		{B, N, []} -> lehman_odd(N, B, 1);
+		{B, N, []} -> split:lehman_odd(N, B, 1);
 		{_, _, [H | _]} -> H;
 		[H | _] -> H
 	end.
@@ -89,16 +89,10 @@ pollard(N, B, S, [H | P], L) when L * H > B -> pollard(N, B, S, P, 1);
 pollard(N, B, S, [H|_] = P, L) -> pollard(N, B, numerl:ipowm(S,H,N), P, L*H);
 pollard(N, B, S, [], _) ->
 	case numerl:gcd(S - 1, N) of
-		1 -> p_stage_2(N, B, B * 100, S);
+		1 -> {stage2, B, S};
 		N -> fail;
 		G -> G
 	end.
-
-% TODO:
-%  - right default value for B2?
-%  - implement stage2
-p_stage_2(N, B1, B2, S) ->
-io:format("stage 2 needed:~n~p ~p ~p ~p~n", [N, B1, B2, S]).
 
 %%%
 %%% implementation
@@ -122,35 +116,3 @@ final(N, Limit, Factor, Acc) ->
 
 reduce(N, [F | T]) when N rem F =:= 0 -> reduce(N div F, [F, F | T]);
 reduce(N, L) -> {N, L}.
-
-lehman_odd(_, B, K) when K > B -> prime;
-lehman_odd(N, B, K) ->
-	Cst = 4 * K * N,
-	L = numerl:isqrt(Cst),
-	R = (K + N) band 3,
-	case lehman_a(start_a(L, R, 4), Cst + B * B, 4, Cst) of
-		nope -> lehman_even(N, B, K + 1);
-		G -> numerl:gcd(N, G)
-	end.
-
-lehman_even(_, B, K) when K > B -> prime;
-lehman_even(N, B, K) ->
-	Cst = 4 * K * N,
-	L = numerl:isqrt(Cst),
-	case lehman_a(start_a(L, 1, 2), Cst + B * B, 2, Cst) of
-		nope -> lehman_odd(N, B, K + 1);
-		G -> numerl:gcd(N, G)
-	end.
-
-lehman_a(A, Max, _, _) when A * A > Max -> nope;
-lehman_a(A, Max, Inc, Cst) ->
-	case numerl:is_square(A * A - Cst) of
-		false -> lehman_a(A + Inc, Max, Inc, Cst);
-		{true, B} -> A + B
-	end.
-
-start_a(S, R, M) ->
-	case S rem M of
-		R -> S;
-		V -> S + R - V
-	end.
