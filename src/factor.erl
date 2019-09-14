@@ -1,8 +1,15 @@
 -module(factor).
 
--export([naive/1, naive/2, fermat/1, hart/1, lehman/1, rho/1, rho/2, rho/3]).
--export([brent/1, brent/2, brent/3, pollard/2, pollard/3]).
+-export([odd/1, odd/2, naive/1, naive/2, fermat/1, hart/1, lehman/1]).
+-export([rho/1, rho/2, rho/3, brent/1, brent/2, brent/3, pollard/2, pollard/3]).
 -export([naive_list/1, naive_list/2, naive_list/3]).
+
+-define(DEFAULT_LIMIT, 500000).
+
+odd(N) -> odd(N, ?DEFAULT_LIMIT).
+
+odd(N, Lim) when N band 1 =:= 1 -> odd_3(N, Lim, []);
+odd(N, Lim) -> odd(N bsr 1, Lim, [2]).
 
 %%%
 %%% exported functions
@@ -20,6 +27,7 @@ naive(N, Limit) -> naive_list(N, min(Limit, numerl:isqrt(N) + 1)).
 naive_list(N) -> naive_list(N, ?DEFAULT_LIMIT).
 
 % equivalent to naive/2
+naive_list(N, Limit) when N =< 16#FFFFFFFFFFFFFFFF -> odd(N, Limit);
 naive_list(N, Limit) -> naive_list(N, Limit, primes:list(Limit)).
 
 % used both as backend of naive/1 and naive/2 but can also be used to check
@@ -45,7 +53,7 @@ hart(N) ->
 				{_, _, [H | _]} -> H;
 				[H | _] -> H
 			end;
-		{true, Square_root} -> Square_root
+		{true, Square_root} -> [Square_root, Square_root]
 	end.
 
 % some test values from Lehman article:
@@ -116,3 +124,24 @@ final(N, Limit, Factor, Acc) ->
 
 reduce(N, [F | T]) when N rem F =:= 0 -> reduce(N div F, [F, F | T]);
 reduce(N, L) -> {N, L}.
+
+odd(N, Lim, Div) when N band 1 =:= 1 -> odd_3(N, Lim, Div);
+odd(N, Lim, Div) -> odd(N bsr 1, Lim, [2 | Div]).
+
+odd_3(N, Lim, Div) when N rem 3 =:= 0 -> odd_3(N div 3, Lim, [3 | Div]);
+odd_3(N, Lim, Div) -> odd(N, start, Lim, Div).
+
+odd(N, start, Lim, Div) ->
+	case split:odd(N, Lim, 5, 2) of
+		{Factors, Cont} ->
+			{N_N, N_Div} = reduce(N div hd(Factors), Factors ++ Div),
+			odd(N_N, cont, Cont, N_Div);
+		{odd, fail, Lim, N} -> {partial, N, Div}
+	end;
+odd(N, cont, Cont, Div) ->
+	case split:odd_cont(N, Cont) of
+		{Factors, N_Cont} ->
+			{N_N, N_Div} = reduce(N div hd(Factors), Factors ++ Div),
+			odd(N_N, cont, N_Cont, N_Div);
+		{odd, fail, Lim, N} -> {partial, Lim, N, Div}
+	end.

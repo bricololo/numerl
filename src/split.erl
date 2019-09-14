@@ -1,5 +1,6 @@
 -module(split).
 
+-export([odd/4, odd_cont/2]).
 -export([fermat/3, fermat_cont/2]).
 -export([hart/2]).
 -export([lehman_odd/3, lehman_even/3]).
@@ -13,6 +14,19 @@
 % ensure that the input is indeed composite or that the proper divisors found
 % (if any) are indeed prime. When possible/needed the split function returns a
 % continuation.
+
+odd_cont(N, {Lim, Factor, Inc}) -> odd(N, Lim, Factor, Inc).
+
+% try to divide N by all the p such that p mod 6 = ± 1.
+% Factor and Inc have to be set so that both Factor and Factor + Inc are both
+% ± 1 (6), Inc = 4 or 2
+odd(N, Lim, Factor, Inc) when Factor < Lim ->
+	case N rem Factor of
+		0 -> {[Factor],{min(Lim,numerl:isqrt(N div Factor)),Factor+Inc,6-Inc}};
+		_ -> odd(N, Lim, Factor + Inc, 6 - Inc)
+	end;
+odd(N, Lim, _, _) -> {odd, fail, Lim, N}.
+
 
 fermat_cont(N, {Square, Inc}) -> fermat(N, Square, Inc).
 
