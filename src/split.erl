@@ -1,7 +1,8 @@
 -module(split).
 
 -export([odd/4, odd_cont/2]).
--export([fermat/3, fermat_cont/2]).
+-export([naive/3, naive_cont/2]).
+-export([fermat/3]).
 -export([hart/2]).
 -export([lehman_odd/3, lehman_even/3]).
 -export([rho/5, rho_cont/2]).
@@ -22,13 +23,23 @@ odd_cont(N, {Lim, Factor, Inc}) -> odd(N, Lim, Factor, Inc).
 % ± 1 (6), Inc = 4 or 2
 odd(N, Lim, Factor, Inc) when Factor < Lim ->
 	case N rem Factor of
-		0 -> {[Factor],{min(Lim,numerl:isqrt(N div Factor)),Factor+Inc,6-Inc}};
+		0 ->
+			{odd, ok, [Factor],
+				{min(Lim, numerl:isqrt(N div Factor)), Factor + Inc, 6 - Inc}};
 		_ -> odd(N, Lim, Factor + Inc, 6 - Inc)
 	end;
-odd(N, Lim, _, _) -> {odd, fail, Lim, N}.
+odd(N, Lim, Factor, _) -> {odd, fail, N, Lim, Factor}.
 
 
-fermat_cont(N, {Square, Inc}) -> fermat(N, Square, Inc).
+naive_cont(N, {Lim, Primes}) -> naive(N, min(Lim, numerl:isqrt(N)), Primes).
+
+naive(N, Lim, [H | T]) when H < Lim ->
+	case N rem H of
+		0 -> {naive, ok, [H], {Lim, T}};
+		_ -> naive(N, Lim, T)
+	end;
+naive(N, Lim, [H | _]) -> {naive, fail, N, Lim, H};
+naive(N, Lim, _) -> {naive, fail, N, Lim}.
 
 fermat(N, Square, Inc) ->
 	Next_square = Square + Inc,
@@ -36,10 +47,9 @@ fermat(N, Square, Inc) ->
 	case numerl:is_square(Next_square - N) of
 		false -> fermat(N, Next_square, Next_inc);
 		{true, Square_root} ->
-			%V = numerl:isqrt(Next_square), but it is faster to derive it from
-			% Next_inc
+			%V = numerl:isqrt(Next_square), but faster this way
 			V = Next_inc bsr 1,
-			{[V - Square_root, V + Square_root], {Next_square, Next_inc}}
+			{fermat, ok, [V - Square_root, V + Square_root]}
 	end.
 
 
@@ -51,7 +61,7 @@ lehman_odd(N, B, K) ->
 	R = (K + N) band 3,
 	case lehman_a(start_a(L, R, 4), Cst + B * B, 4, Cst) of
 		nope -> lehman_even(N, B, K + 1);
-		G -> {[numerl:gcd(N, G)], K}
+		G -> {lehman, ok, [numerl:gcd(N, G)], K}
 	end.
 
 lehman_even(N, B, K) ->
@@ -59,10 +69,11 @@ lehman_even(N, B, K) ->
 	L = numerl:isqrt(Cst),
 	case lehman_a(start_a(L, 1, 2), Cst + B * B, 2, Cst) of
 		nope -> lehman_odd(N, B, K + 1);
-		G -> {[numerl:gcd(N, G)], K}
+		G -> {lehman, ok, [numerl:gcd(N, G)], K}
 	end.
 
-brent_cont(N, {Fun,Start,Y,Iter,Power}) -> brent(N, Fun, Start, Y, Iter, Power).
+brent_cont(N, {Fun, Start, Y, Iter, Power}) ->
+	brent(N, Fun, Start, Y, Iter, Power).
 
 brent(N, Fun, X, _, Iter, Iter) -> brent(N, Fun, X, X, Iter, Iter bsl 1);
 brent(N, Fun, X, Y, Iter, Power) ->
@@ -87,10 +98,11 @@ hart(N, Lim, I) when I =< Lim ->
 	S = case Tmp * Tmp of G -> Tmp; _ -> Tmp + 1 end,
 	M = (S * S) rem N,
 	case numerl:is_square(M) of
-		{true, T} -> {[numerl:gcd(N, abs(S - T))], {I, Lim}};
+		{true, T} -> {hart, ok, [numerl:gcd(N, abs(S - T))]};
 		_ -> hart(N, Lim, I + 1)
 	end;
-hart(_, _, _) -> fail.
+% I'm not sure that Hart can fail
+hart(N, Lim, I) -> {hart, fail, {N, Lim, I}}.
 
 lehman_a(A, Max, _, _) when A * A > Max -> nope;
 lehman_a(A, Max, Inc, Cst) ->
