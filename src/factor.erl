@@ -27,7 +27,7 @@ naive(N, Limit) -> naive_list(N, min(Limit, numerl:isqrt(N) + 1)).
 % against a factor base.
 naive_list(N, Lim, Primes) ->
 	case split:naive(N, Lim, Primes) of
-		{[Factor], Cont} ->
+		{naive, ok, [Factor], Cont} ->
 			{N_N, Div} = reduce(N div Factor, [Factor]),
 			naive_list_(N_N, Cont, Div);
 		_ -> {fail, N, Lim, []}
@@ -136,6 +136,7 @@ naive_list_(N, Cont, Div) ->
 		{naive, ok, [Factor], N_Cont} ->
 			{N_N, N_Div} = reduce(N div Factor, [Factor | Div]),
 			naive_list_(N_N, N_Cont, N_Div);
+		{naive, fail, N, Lim, _} -> {fail, Lim, N, lists:reverse(Div)};
 		{naive, fail, N, Lim} -> final(N, Lim, hd(Div), Div) % Todo: get last P
 	end.
 
