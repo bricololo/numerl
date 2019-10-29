@@ -1,6 +1,6 @@
 -module(pq).
 
--export([new/2, val/1, add/2, bump/2, bumpt/4]).
+-export([new/2, val/1, add/2, bump/1, bump/2, bumpt/4]).
 
 new(Cur, Next) -> {Cur, Next, empty}.
 
@@ -14,10 +14,12 @@ add({Cur, Next, empty}, Elem) -> {Cur, Next, 1, leaf(Elem)};
 % adding the Size + 1 element to the heap Heap at the position given by path/1
 add({Cur,Next,Size,Heap},Elem) -> {Cur,Next,Size+1,add(Heap,Elem,path(Size+1))}.
 
-% remove the composite N from Heap of Size, the size of the heap will not change
-% as a composite removed is replaced by a bigger composite.
-bump({Cur, Next, Size, Heap}, N) ->
-	{Cur, Next, Size, bumpt(Heap, N, Cur, Next)}.
+% remove N from the heap Heap of size Size, the size of the heap will not change
+% as an element removed is replaced by a bigger one
+bump({Cur, Next, Size, Heap}, N) -> {Cur, Next, Size, bumpt(Heap,N,Cur,Next)}.
+
+bump({Cur, Next, Size, {Head, Left, Right}}) ->
+	{Cur, Next, Size, fix({Next(Head), Left, Right}, Cur)}.
 
 %%
 %% implementation
