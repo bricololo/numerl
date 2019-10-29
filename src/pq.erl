@@ -11,9 +11,8 @@ val({Cur, _, _, {P, _, _}}) -> Cur(P).
 % heap, so:
 % Creating the root of the heap
 add({Cur, Next, empty}, Elem) -> {Cur, Next, 1, leaf(Elem)};
-% adding the Sz + 1 element to the heap T at the position given by path/1
-add({Cur, Next, Size, Heap}, Elem) ->
-	{Cur, Next, Size + 1, add(Heap, Elem, path(Size + 1))}.
+% adding the Size + 1 element to the heap Heap at the position given by path/1
+add({Cur,Next,Size,Heap},Elem) -> {Cur,Next,Size+1,add(Heap,Elem,path(Size+1))}.
 
 % remove the composite N from Heap of Size, the size of the heap will not change
 % as a composite removed is replaced by a bigger composite.
@@ -37,8 +36,8 @@ add({Head, Left, Right}, Elem, [0 | Path]) ->
 add({Head, Left, Right}, Elem, [1 | Path]) ->
 	{Head, Left, add(Right, Elem, Path)}.
 
-% an element might be present several times So we replace V by its next value
-% until the smallest element in T is larger than V.
+% an element might be present several times So we replace Head by its next value
+% until the smallest element in Heap is larger than V.
 bumpt({Head, Left, Right} = Heap, V, Cur, Next) ->
 	case Cur(Head) of
 		Vp when Vp =< V ->
