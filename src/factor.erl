@@ -124,7 +124,7 @@ odd_(N, Cont, Div) ->
 	case split:odd_cont(N, Cont) of
 		{odd, ok, [Factor], N_Cont} ->
 			{N_N, N_Div} = reduce(N div Factor, [Factor | Div]),
-			odd(N_N, N_Cont, N_Div);
+			odd_(N_N, N_Cont, N_Div);
 		{odd, fail, N, Lim, _} -> {partial, Lim, N, Div}
 	end.
 
