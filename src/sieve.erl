@@ -10,13 +10,17 @@
 
 -export([fast_bump/3]).
 
+% all prime numbers up to Lim
 up_to(prime, Lim) ->
 	{Comp, Start, Acc} = prime:init_pq(Lim, [7, 5, 3, 2]),
 	sieve(prime, Comp, Start, Lim, Acc);
+% all squarefree numbers up to Lim
 up_to(squarefree, Lim) ->
 	{Bad, Start, Acc} = squarefree:init_pq(Lim),
 	sieve(squarefree, Bad, Start, Lim, Acc).
 
+% all prime numbers between From and To
+from_to(prime, To, From) when From < To -> from_to(prime, From, To);
 from_to(prime, From, To) ->
 	{Temp, Start, Acc} = prime:init_pq(To, [7, 5, 3, 2]),
 	Start_from = prime:start_from(Start, From),
@@ -24,9 +28,11 @@ from_to(prime, From, To) ->
 	sieve(prime, Comp, Start_from, To,
 		lists:takewhile(fun(X) -> X >= From end, Acc)).
 
+% all B-smooth numbers up to Lim
 b_up_to(smooth, B, Lim) ->
 	{Bad, Start, Acc} = smooth:init_pq(B, Lim),
 	sieve(smooth, Bad, Start, Lim, Acc);
+% all B-powersmooth numbers up to Lim with B1=B2=B
 b_up_to(power_smooth, B, Lim) -> b_from_to(power_smooth, B, B, Lim).
 
 b_from_to(smooth, B, From, To) ->
