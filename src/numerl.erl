@@ -146,6 +146,7 @@ is_square_(N, 1) -> square_mod_test(N);
 is_square_(_, _) -> false.
 
 square_mod_test(N) ->
+	% 45045 = 7 * 11 * 13 * 9 * 5 = (7 * 9) * (13 * 5) * 11 = 63 * 65 * 11
 	T = N rem 45045,
 	case square_63_test(T) of
 		false -> false;

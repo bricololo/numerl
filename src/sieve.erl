@@ -3,12 +3,10 @@
 -export([
 	up_to/2, from_to/3,
 	b_up_to/3, b_from_to/4,
-	b1b2_from_to/5,
+	b1b2_up_to/4, b1b2_from_to/5,
 	ets/3, ets/4, %ets/5, ets/6,
 	foldl/4, foldl/5
 	]).
-
--export([fast_bump/3]).
 
 % all prime numbers up to Lim
 up_to(prime, Lim) ->
@@ -35,15 +33,18 @@ b_up_to(smooth, B, Lim) ->
 % all B-powersmooth numbers up to Lim with B1=B2=B
 b_up_to(power_smooth, B, Lim) -> b_from_to(power_smooth, B, B, Lim).
 
+% B-smooth numbers between From and To
 b_from_to(smooth, B, From, To) ->
 	{Tmp, Start, Acc} = smooth:init_pq(B, {From, To}),
 	Bad = fast_bump(smooth, Tmp, From),
-	sieve(smooth, Bad, Start, To, Acc);
-b_from_to(power_smooth, B1, B2, Lim) ->
+	sieve(smooth, Bad, Start, To, Acc).
+
+% B1,B2-powersmooth numbers up to Lim
+b1b2_up_to(power_smooth, B1, B2, Lim) ->
 	{Bad, Start, Acc} = power_smooth:init_pq({B1, B2}, Lim),
 	sieve(power_smooth, Bad, Start, Lim, Acc).
 
-
+% B1,B2-powersmooth numbers between From and To
 b1b2_from_to(power_smooth, B1, B2, From, To) ->
 	{Tmp, _, Acc} = power_smooth:init_pq({B1, B2}, To),
 	Bad = fast_bump(power_smooth, Tmp, From),
