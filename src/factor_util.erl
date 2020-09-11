@@ -6,7 +6,9 @@ l(N) ->
 	Ln = math:log(N),
 	math:exp(math:sqrt(Ln * math:log(Ln))).
 
-factor_base(B, Filter) -> [P || P <- tl(eratos:sieve(B)), Filter(P)].
+factor_base(B, Filter) ->
+	Candidates = tl(eratos:sieve(B)),
+	[P || P <- Candidates, Filter(P)].
 
 % find X such that X * X = A (P) given that P is prime and jacobi(A, P) = 1 by
 % using Tonelli algorithm.
