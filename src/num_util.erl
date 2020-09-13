@@ -28,11 +28,7 @@ log2_bin_s(N) -> (N band 2) bsr 1 + 1.
 p2(0) -> 0; % by convention, infinity would also makes sense
 p2(N) when N band 1 =:= 1 -> 0;
 p2(N) when N < ?N64 -> p2_64(N);
-p2(N) ->
-	case N band 16#ffff_ffff_ffff_ffff of
-		0 -> p2(N bsr 64, 64);
-		V -> p2_64(V)
-	end.
+p2(N) -> p2(N, 0).
 
 p2(N, Acc) ->
 	case N band 16#ffff_ffff_ffff_ffff of
