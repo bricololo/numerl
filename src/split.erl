@@ -4,7 +4,7 @@
 -export([naive/3, naive_cont/2]).
 -export([fermat/3]).
 -export([hart/2]).
--export([lehman_odd/3, lehman_even/3]).
+-export([lehman/3, lehman_odd/3, lehman_even/3]).
 -export([rho/5, rho_cont/2]).
 -export([brent/6, brent_cont/2]).
 
@@ -16,20 +16,17 @@
 % (if any) are indeed prime. When possible/needed the split function returns a
 % continuation.
 
-odd_cont(N, {Lim, Factor, Inc}) -> odd(N, Lim, Factor, Inc).
-
 % try to divide N by all the p such that p mod 6 = ± 1.
 % Factor and Inc have to be set so that both Factor and Factor + Inc are both
 % ± 1 (6), Inc = 4 or 2
 odd(N, Lim, Factor, Inc) when Factor < Lim ->
 	case N rem Factor of
-		0 ->
-			{odd, ok, [Factor],
-				{min(Lim, numerl:isqrt(N div Factor)), Factor + Inc, 6 - Inc}};
+		0 -> {odd, ok, [Factor], {Lim, Factor + Inc, 6 - Inc}};
 		_ -> odd(N, Lim, Factor + Inc, 6 - Inc)
 	end;
 odd(N, Lim, Factor, _) -> {odd, fail, N, Lim, Factor}.
 
+odd_cont(N, {Lim, Factor, Inc}) -> odd(N, Lim, Factor, Inc).
 
 naive_cont(N, {Lim, Primes}) -> naive(N, min(Lim, numerl:isqrt(N)), Primes).
 
@@ -54,6 +51,9 @@ fermat(N, Square, Inc) ->
 
 
 hart(N, Lim) -> hart(N, Lim, 1).
+
+lehman(N, B, K) when N band 1 =:= 1 -> lehman_odd(N, B, K);
+lehman(N, B, K) -> lehman_even(N, B, K).
 
 lehman_odd(N, B, K) ->
 	Cst = 4 * K * N,
@@ -101,7 +101,6 @@ hart(N, Lim, I) when I =< Lim ->
 		{true, T} -> {hart, ok, [numerl:gcd(N, abs(S - T))]};
 		_ -> hart(N, Lim, I + 1)
 	end;
-% I'm not sure that Hart can fail
 hart(N, Lim, I) -> {hart, fail, {N, Lim, I}}.
 
 lehman_a(A, Max, _, _) when A * A > Max -> nope;
