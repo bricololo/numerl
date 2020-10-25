@@ -1,5 +1,9 @@
 -module(eratos).
 
+% A specialised sieve dealing only with primes, it relies on tricks (such as
+% using large wheels) to be slightly faster than the implementation of the sieve
+% module.
+
 -export_type([tab/0, tid/0]).
 
 -type tab() :: atom() | tid().

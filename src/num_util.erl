@@ -1,5 +1,7 @@
 -module(num_util).
 
+% a bunch of useful low level functions
+
 -define(N64, 18446744073709551616). % 1 bsl 64
 
 -export([bytes/1, log2_est/1, p2/1, hamming/1]).
