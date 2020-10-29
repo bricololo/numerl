@@ -1,5 +1,7 @@
 -module(factor).
 
+% no clear API for this module for time being :(
+
 -export([odd/1, odd/2, naive/1, naive/2, fermat/1, hart/1, lehman/1]).
 -export([rho/1, rho/2, rho/3, brent/1, brent/2, brent/3, pollard/2, pollard/3]).
 -export([naive_list/3]).
@@ -51,9 +53,10 @@ hart(N) ->
 		false ->
 			B = numerl:icubrt(N),
 			case naive_list(N, B, eratos:sieve(B)) of
-				{B, N, []} -> split:hart(N, min(B, ?DEFAULT_LIMIT));
-				{_, _, [H | _]} -> H;
-				[H | _] -> H
+				{fail, N, B, []} -> split:hart(N, min(B, ?DEFAULT_LIMIT));
+				{_, _, [_ | _] = Divs} -> Divs;
+				[_ | _] = Divs -> Divs;
+				{fail, _, _, Divs} -> Divs
 			end;
 		{true, Square_root} -> [Square_root, Square_root]
 	end.
@@ -65,8 +68,9 @@ hart(N) ->
 lehman(N) ->
 	B = numerl:icubrt(N),
 	case naive_list(N, B, eratos:sieve(B)) of
-		{B, N, []} -> split:lehman_odd(N, B, 1);
+		{fail, N, B, []} -> split:lehman_odd(N, B, 1);
 		{_, _, [H | _]} -> H;
+		{fail, _, _, Divs} -> Divs;
 		[H | _] -> H
 	end.
 
@@ -96,7 +100,8 @@ pollard(N, B, S) -> pollard(N, B, S, eratos:sieve(B), 1).
 
 
 pollard(N, B, S, [H | P], L) when L * H > B -> pollard(N, B, S, P, 1);
-pollard(N, B, S, [H|_] = P, L) -> pollard(N, B, numerl:ipowm(S,H,N), P, L*H);
+pollard(N, B, S, [H | _] = P, L) ->
+	pollard(N, B, numerl:ipowm(S, H, N), P, L * H);
 pollard(N, B, S, [], _) ->
 	case numerl:gcd(S - 1, N) of
 		1 -> {stage2, B, S};
@@ -117,6 +122,8 @@ odd_3(N, Lim, Div) ->
 		{odd, ok, [Factor], Cont} ->
 			{N_N, N_Div} = reduce(N div Factor, [Factor | Div]),
 			odd_(N_N, Cont, N_Div);
+		{odd, fail, 1, _, _} -> lists:reverse(Div);
+		{odd, fail, N, Lim, _} when Lim * Lim > N -> lists:reverse([N | Div]);
 		{odd, fail, N, Lim, _} -> {partial, Lim, N, Div}
 	end.
 
@@ -125,9 +132,16 @@ odd_(N, Cont, Div) ->
 		{odd, ok, [Factor], N_Cont} ->
 			{N_N, N_Div} = reduce(N div Factor, [Factor | Div]),
 			odd_(N_N, N_Cont, N_Div);
+		{odd, fail, 1, _, _} -> lists:reverse(Div);
+		{odd, fail, N, Lim, _} when Lim * Lim > N -> lists:reverse([N | Div]);
 		{odd, fail, N, Lim, _} -> {partial, Lim, N, Div}
 	end.
 
+% - odd(N, ?DEFAULT_LIMIT) takes 5 ms when N has no small factor
+% - naive_list(N, ?DEFAULT_LIMIT, P) with P = eratos:sieve(?DEFAULT_LIMIT) takes
+%   only 1.5 ms but eratos:sieve(?DEFAULT_LIMIT) takes a big 100 ms. So
+%   naive_list/3 is useful only when the list of primes is precomputed and
+%   reused numerous times
 naive_list(N, Lim) when N =< 16#FFFFFFFFFFFFFFFF -> odd(N, Lim);
 naive_list(N, Lim) -> naive_list(N, Lim, eratos:sieve(Lim)).
 

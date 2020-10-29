@@ -19,8 +19,6 @@ naive_1(_) ->
 	% working cases,
 	[2] = F(2),
 	[3] = F(3),
-	[5] = F(5),
-	[2, 5] = factor:naive_list(10),
 	[101, 103, 107, 109] = F(101 * 103 * 107 * 109),
 
 	% repeated prime factors
@@ -28,10 +26,10 @@ naive_1(_) ->
 		F(101 * 101 * 103 * 103 * 103 * 107 * 109),
 
 	% no factorisation as smallest divisor is larger than the default limit
-	{500000, 500009 * 500029, []} = F(500009 * 500029),
+	{partial, 500000, 500009 * 500029, []} = F(500009 * 500029),
 
 	% partial factorisation because several prime factors are larger than default limit
-	{500000, 500009 * 500029, [101, 103, 107, 109]} =
+	{fail, 500_000, 500_009 * 500_029, [101, 103, 107, 109]} =
 		F(101 * 103 * 107 * 109 * 500009 * 500029),
 
 	% complete factorisation as only one factor is larger than the default limit
@@ -59,14 +57,14 @@ fermat(_) ->
 hart(_) ->
 	F = fun(N) -> factor:hart(N) end,
 
-	{[3119], {165, 236}} = F(13290059),
+	{hart, ok, [3119]} = F(13290059),
 
 	G = fun(N) -> split:hart(N, numerl:icubrt(N)) end,
 
 	P = numerl:ipow(10, 200) + 357,
 	Q = numerl:ipow(10, 201) + 97,
-	{[Q], {40, _}} = G(P * Q),
-	{[Q], {40, 50}} = split:hart(P * Q, 50),
+	{hart, ok, [Q]} = G(P * Q),
+	{hart, ok, [Q]} = split:hart(P * Q, 50),
 
 	ok.
 
@@ -100,10 +98,10 @@ pollard_3(_) ->
 lehman(_) ->
 	F = fun(N) -> factor:lehman(N) end,
 
-	101 = F(101 * 103 * 107 * 109),
-	{[299155897], 23220} = F(1123877887715932507),
-	{[43655660929], 6750} = F(1129367102454866881),
-	{[372173423], 825406} = F(29742315699406748437),
+	[101, 103] = F(101 * 103 * 107 * 109),
+	{lehman, ok, [299155897], 23220} = F(1123877887715932507),
+	{lehman, ok, [43655660929], 6750} = F(1129367102454866881),
+	{lehman, ok, [372173423], 825406} = F(29742315699406748437),
 	ok.
 
 pollard(_) ->
