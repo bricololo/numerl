@@ -9,7 +9,6 @@ init([3, 5, 7 | Divs]) ->
 		lists:merge(
 			[filter(P, Length, Divs) ||
 				P <- [11, 13, 17, 19, 23, 29, 31, 37]]),
-
 	{delta(Notches ++ [hd(Notches) + Length]), []};
 init(Divs) ->
 	Count = lists:foldl(fun(E, P) -> (E - 1) * P end, 1, Divs),
@@ -47,8 +46,6 @@ delta(L) -> delta(L, []).
 
 delta([F, S | _] = L, Acc) -> delta(tl(L), [S - F | Acc]);
 delta([_], Acc) -> lists:reverse(Acc).
-%delta(L) ->
-%	[B - A || {A, B} <- lists:zip(lists:sublist(L, length(L) -1), tl(L))].
 
 
 filter(P, L, T) ->

@@ -2,7 +2,7 @@
  [
   {description, "An Erlang number theory library"},
   {vsn, "1"},
-  {modules, [numerl, num_util, eratos, wheel, primes, misc]},
+  {modules, [numerl, num_util, eratos, wheel, pq, primes, misc, arith_funs]},
   {registered, []},
   {applications, [
                   kernel,
