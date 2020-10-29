@@ -54,7 +54,9 @@ isqrt(N) -> isqrt(N, isqrt_candidate(N)).
 % integer cube root using Newton method. returns the largest integer R such
 % that R * R * R &lt; N + 1
 icubrt(-1) -> -1;
-icubrt(N) when N > - 5, N < -1 -> -2;
+icubrt(N) when N > - 9, N < -1 -> -2;
+icubrt(N) when N > -2, N < 2 -> N;
+icubrt(N) when N > 1, N < 8 -> 1;
 icubrt(N) -> icubrt(N, icubrt_candidate(N)).
 
 -spec iroot(N :: integer(), P :: integer()) -> integer().
