@@ -104,7 +104,7 @@ no_small_div_test(_) ->
 
 	% a fast but weak and limited test
 
-	% primes larger than 89 are indeed passing the test
+	% primes larger than 101 are indeed passing the test
 	true = F(1009),
 	% but
 	{false, 83} = F(83),
@@ -112,14 +112,14 @@ no_small_div_test(_) ->
 	% what happened to our previous counter examples:
 	{false, 341} = F(341),
 	% but
-	true = F(1 bsl 32 + 1), % because the smallest div is > 89
+	true = F(1 bsl 32 + 1), % because the smallest div is > 101
 
-	% 100% exact between 90 and 9408
-	{false, 30} = F(90),
-	true = F(97),
-	true = F(9403),
-	{false, 23} = F(9407),
-	{false, 42} = F(9408),
+	% 100% exact between 102 and 10608
+	{false, 51} = F(102),
+	true = F(103),
+	true = F(10607),
+	{false, 3} = F(10611),
+	{false, 663} = F(10608),
 	% but
-	true = F(97 * 97),
+	true = F(103*103),
 	ok.

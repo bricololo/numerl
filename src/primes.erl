@@ -1,6 +1,6 @@
 -module(primes).
 
--define(N60, 1152921504606846976). % 1 bsl 60
+-define(N64, 18_446744_073709_551615). % 1 bsl 64 - 1
 
 -export([list/1, fermat_test/1, fermat_test/2, strong_test/1, strong_test/2]).
 -export([fibonacci_test/1, lucas_test/1, lucas_test/3, no_small_div_test/1]).
@@ -57,9 +57,9 @@ lucas_test(N, A, B) ->
 % do not use this test as a standalone one, but see it as a fast way to seed
 % out most of the composite numbers
 no_small_div_test(N) ->
-	case numerl:gcd(614889782588491410, N) of % up to 47
+	case numerl:gcd(16_294579_238595_022365, N) of % 3 to 53
 		1 ->
-			case numerl:gcd(38655288426304091, N) of % up to 89
+			case numerl:gcd(14_290787_196698_157718, N) of % 2 and 59 to 101
 				1 -> true;
 				D -> {false, D}
 			end;
@@ -70,7 +70,7 @@ trial_div_test(N) ->
 	case no_small_div_test(N) of
 		true ->
 			trial_div_test(N, numerl:isqrt(N),
-				lists:dropwhile(fun(P) -> P < 97 end, list(100000)));
+				lists:dropwhile(fun(P) -> P < 103 end, list(100000)));
 		Else -> Else
 	end.
 trial_div_test(N, List) -> trial_div_test(N, numerl:isqrt(N), List).
@@ -84,12 +84,13 @@ rabin_miller_test(N, C) ->
 
 % a probalistic test.
 is_prime(N) -> is_prime(N, 20).
-is_prime(N, _) when N < 97 ->
+is_prime(N, _) when N < 103 ->
 	lists:member(N,
-		[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89]);
+		[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,
+			97,101]);
 is_prime(N, K) ->
 	case no_small_div_test(N) of
-		true when N < 9409 -> true;
+		true when N < 10609 -> true;
 		true -> possible_prime(N, K);
 		_ -> false
 	end.
@@ -116,7 +117,7 @@ fib_and_fermat(N) ->
 % TODO: replace r_m2/4 by strong_test/3
 r_m(_, _, _, 0) -> true;
 r_m(N, Q, T, C) ->
-	A = rand:uniform(min(N - 1, ?N60)) + 1,
+	A = rand:uniform(min(N - 1, ?N64)) + 1,
 	case numerl:ipowm(A, Q, N) of
 		1 -> r_m(N, Q, T, C - 1);
 		B ->
