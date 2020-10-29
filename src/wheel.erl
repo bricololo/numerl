@@ -42,8 +42,13 @@ check([_ | T], C) -> check(T, C);
 check([], C) -> C.
 
 
-delta(L) ->
-	[B - A || {A, B} <- lists:zip(lists:sublist(L, length(L) -1), tl(L))].
+delta(L) when length(L) < 2 -> undefined;
+delta(L) -> delta(L, []).
+
+delta([F, S | _] = L, Acc) -> delta(tl(L), [S - F | Acc]);
+delta([_], Acc) -> lists:reverse(Acc).
+%delta(L) ->
+%	[B - A || {A, B} <- lists:zip(lists:sublist(L, length(L) -1), tl(L))].
 
 
 filter(P, L, T) ->
