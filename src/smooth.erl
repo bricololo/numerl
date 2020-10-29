@@ -5,10 +5,10 @@
 -export([fast_next/2]).
 
 init_pq(B, {From, To}) when B < To ->
-	Primes = sieve:list(prime, B, To),
+	Primes = sieve:from_to(prime, B + 1, To),
 	init(pq:new(fun cur/1, fun next/1), Primes, From);
 init_pq(B, Lim) when B < Lim ->
-	Primes = sieve:list(prime, B, Lim),
+	Primes = sieve:from_to(prime, B + 1, Lim),
 	init(pq:new(fun cur/1, fun next/1), Primes, 2).
 
 candidate(V) -> V.

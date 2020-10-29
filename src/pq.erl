@@ -33,17 +33,15 @@ path(1, L) -> L;
 path(N, L) -> path(N bsr 1, [N band 1 | L]).
 
 add(nil, Elem, []) -> leaf(Elem);
-add({Head, Left, Right}, Elem, [0 | Path]) ->
-	{Head, add(Left, Elem, Path), Right};
-add({Head, Left, Right}, Elem, [1 | Path]) ->
-	{Head, Left, add(Right, Elem, Path)}.
+add({_,Left,_} = H, Elem, [0 | Path]) -> setelement(2,H,add(Left,Elem,Path));
+add({_,_,Right} = H, Elem, [1 | Path]) -> setelement(3,H,add(Right,Elem,Path)).
 
 % an element might be present several times So we replace Head by its next value
 % until the smallest element in Heap is larger than V.
-bumpt({Head, Left, Right} = Heap, V, Cur, Next) ->
+bumpt({Head, _, _} = Heap, V, Cur, Next) ->
 	case Cur(Head) of
 		Vp when Vp =< V ->
-			bumpt(fix({Next(Head), Left, Right}, Cur), V, Cur, Next);
+			bumpt(fix(setelement(1, Heap, Next(Head)), Cur), V, Cur, Next);
 		_ -> Heap
 	end.
 

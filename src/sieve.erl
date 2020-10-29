@@ -70,9 +70,11 @@ b1b2_from_to(power_smooth, B1, B2, From, To) ->
 	Bad = fast_bump(power_smooth, Tmp, From),
 	sieve(power_smooth, Bad, From, To, Acc).
 
+% all primes in a ets table
+% TODO: store something more useful than {P}...
 ets(prime, Lim, Tid) ->
 	{Comp, Start, Acc} = prime:init_pq(Lim, Tid),
-	ets:insert(Acc, [{2, y}, {3, y}, {5, y}, {7, y}]),
+	ets:insert(Acc, [{2}, {3}, {5}, {7}]),
 	sieve(prime, Comp, Start, Lim, Acc).
 
 % primes between From and To in a ets table
@@ -92,7 +94,9 @@ ets(prime, From, To, Tid) ->
 		end,
 	foldl(prime, From, To, Fun, Tid).
 
+foldl(prime, Lim, Fun, []) -> foldl(prime, 1, Lim, Fun, [7, 5, 3, 2]);
 foldl(prime, Lim, Fun, Acc) -> foldl(prime, 1, Lim, Fun, Acc).
+
 foldl(prime, From, To, Fun, Acc) ->
 	{Comp, Start, N_Acc} = prime:init_pq(To, {Fun, Acc, From}),
 	sieve(prime, Comp, Start, To, N_Acc).

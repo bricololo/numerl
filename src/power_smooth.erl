@@ -1,5 +1,7 @@
 -module(power_smooth).
 
+% A callback module of sieve to get power smooth numbers
+
 -export([init_pq/2, candidate/1, result/1, next_candidate/1, new_acc/2]).
 -export([fast_next/2]).
 
@@ -36,7 +38,7 @@ init(Bad, [H | T]) -> init(pq:add(Bad, {H, H}), T);
 init(Bad, []) -> {Bad, 2, []}.
 
 filter(B1, B2, Lim) ->
-	Primes = sieve:list(prime, Lim),
+	Primes = sieve:up_to(prime, Lim),
 	{Small, Big} = lists:splitwith(fun(X) -> X =< B1 end, Primes),
 	{Medium, Large} = lists:splitwith(fun(X) -> X =< B2 end, Big),
 	lists:merge3(

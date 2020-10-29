@@ -81,7 +81,7 @@ ins(N, {_, _, From} = Result) when N < From -> Result;
 ins(N, {Fun, Acc, From}) -> {Fun, Fun(N, Acc), From};
 ins(N, Primes) when is_list(Primes) -> [N | Primes];
 ins(N, Primes) ->
-	ets:insert(Primes, {N, y}),
+	ets:insert(Primes, {N}),
 	Primes.
 
 start({Val, _} = Start, Lim) when Val >= Lim -> Start;

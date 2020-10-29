@@ -4,11 +4,11 @@
 	new_acc/2]).
 
 init_pq(Lim) ->
-	Primes = sieve:list(prime, numerl:isqrt(Lim)),
+	Primes = sieve:up_to(prime, numerl:isqrt(Lim)),
 	init(pq:new(fun cur/1, fun next/1), Primes, 2).
 
 init_pq(From, To) ->
-	Primes = sieve:list(prime, numerl:isqrt(To)),
+	Primes = sieve:up_to(prime, numerl:isqrt(To)),
 	init(pq:new(fun cur/1, fun next/1), Primes, From).
 
 candidate(V) -> V.
