@@ -14,10 +14,18 @@ fibm(0, _) -> 0;
 fibm(1, _) -> 1;
 fibm(N, M) -> element(1, fast_fibm(N, M)).
 
-fact(0) -> 1;
-fact(1) -> 1;
-fact(N) when N band 1 =:= 1 -> N * fact(N - 1);
-fact(N) -> fact(N, N - 2, 1, []).
+% modular fast Fibonacci
+fast_fibm(1, _) -> {1, 1};
+fast_fibm(2, _) -> {1, 2};
+fast_fibm(N, M) ->
+	{A, B} = fast_fibm(N bsr 1, M),
+	A2 = A * A,
+	B2 = B * B,
+	P = A * B,
+	case N band 1 of
+		0 -> {(P bsl 1 - A2) rem M, (A2 + B2) rem M};
+		1 -> {(A2 + B2) rem M, (P bsl 1 + B2) rem M}
+	end.
 
 % Nth lucas number
 lucas(N) -> lucas(2, 1, N).
@@ -28,6 +36,12 @@ lucas(_, B, 1) -> B;
 lucas(A, B, N) ->
 	{F1, F2} = fast_fib(N - 1),
 	A * F1 + B * F2.
+
+% Factorial
+fact(0) -> 1;
+fact(1) -> 1;
+fact(N) when N band 1 =:= 1 -> N * fact(N - 1);
+fact(N) -> fact(N, N - 2, 1, []).
 
 %%%
 %%% implementation
@@ -45,18 +59,6 @@ fast_fib(N) ->
 	case N band 1 of
 		0 -> {P bsl 1 - A2, A2 + B2};
 		1 -> {A2 + B2, P bsl 1 + B2}
-	end.
-
-fast_fibm(1, _) -> {1, 1};
-fast_fibm(2, _) -> {1, 2};
-fast_fibm(N, M) ->
-	{A, B} = fast_fibm(N bsr 1, M),
-	A2 = A * A,
-	B2 = B * B,
-	P = A * B,
-	case N band 1 of
-		0 -> {(P bsl 1 - A2) rem M, (A2 + B2) rem M};
-		1 -> {(A2 + B2) rem M, (P bsl 1 + B2) rem M}
 	end.
 
 fact(V, 0, P, Acc) -> fact([P * V | Acc], []);
