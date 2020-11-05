@@ -80,6 +80,9 @@ ipow(N, 2) -> N * N;
 ipow(-1, N) when N band 1 =:= 0 -> 1;
 ipow(-1, _) -> -1;
 ipow(2, N) -> 1 bsl N;
+ipow(Even, N) when Even band 1 =:= 0 ->
+	Z = num_util:p2(Even),
+	ipow(Even bsr Z, N, 1) bsl (Z * N);
 ipow(N, P) -> ipow(N, P, 1).
 
 -spec ipowm(N :: number(), P :: integer(), M :: integer()) -> integer().

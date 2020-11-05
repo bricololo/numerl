@@ -133,6 +133,7 @@ ipowm(_) ->
 	1 = F(N, 0),
 	1 = F(1, N),
 	1 = numerl:ipowm(2, P - 1, P),
+	1 = numerl:ipowm(3, P - 1, P),
 	ok.
 
 jacobi(_) ->
