@@ -3,7 +3,7 @@
 -export([fib/1, fibm/2, fast_fibm/2, lucas/1, lucas/3, lucasm/2, lucasm/4]).
 -export([fact/1]).
 
--define(N60, 1152921504606846976).
+-define(N64, 18446744073709551616).
 
 % Fibonacci
 fib(0) -> 0;
@@ -72,11 +72,11 @@ fast_fib(N) ->
 		1 -> {A2 + B2, P bsl 1 + B2}
 	end.
 
-fact(V, 0, P, Acc) -> fact([P * V | Acc], []);
-fact(V, I, P, Acc) when P < ?N60 -> fact(V + I, I - 2, P * V, Acc);
+fact(V, 0, P, Acc) -> list_mul([P * V | Acc], []);
+fact(V, I, P, Acc) when P < ?N64 -> fact(V + I, I - 2, P * V, Acc);
 fact(V, I, P, Acc) -> fact(V, I, 1, [P | Acc]).
 
-fact([F, S | T], Acc) -> fact(T, [F * S | Acc]);
-fact([R], []) -> R;
-fact([], Acc) -> fact(Acc, []);
-fact([R], Acc) -> fact([R | Acc], []).
+list_mul([F, S | T], Acc) -> list_mul(T, [F * S | Acc]);
+list_mul([R], []) -> R;
+list_mul([], Acc) -> list_mul(Acc, []);
+list_mul([R], Acc) -> list_mul([R | Acc], []).

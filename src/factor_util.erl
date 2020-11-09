@@ -25,11 +25,14 @@ sqrt_m(V, P) ->
 		_ -> numerl:ipowm(A, P bsr 2 + 1, P)
 	end.
 
+%
+% Implementation
+%
+
 sqrt_m_1(A, P) ->
 	S = num_util:p2(P - 1),
 	T = P bsr S,
-	Y = non_square(2, P bsr 1, P),
-	D = numerl:ipowm(Y, T, P),
+	D = numerl:ipowm(non_square(2, P bsr 1, P), T, P),
 	M = m(1, S, 0, numerl:ipowm(A, T, P), D, P),
 	(numerl:ipowm(A, (T + 1) bsr 1, P) * numerl:ipowm(D, M bsr 1, P)) rem P.
 

@@ -10,19 +10,26 @@
 % This module does not check if the input is a valid full factorization and will
 % provide wrong answers when the input is not as expected
 
+% Euler phi/totient function gives the amount of numbers lower than N that are
+% coprime with N
 phi(L) when is_list(L) ->
 	mult(L, fun({P, E}) -> numerl:ipow(P, E - 1) * (P - 1) end).
 
+% number of positive divisors
 d(L) when is_list(L) ->
 	mult(L, fun({_, E}) -> 1 + E end).
 
+% sum of positive divisors
 sigma(L) when is_list(L) ->
 	mult(L, fun({P, E}) -> (numerl:ipow(P, E + 1) - 1) div (P - 1) end).
 
+% mu(N) is 0 if N is a muttiple of a square, and otherwise 1 if N has an even
+% number of prime factors and -1 if N has an odd number of primes factors.
 moebius(L) when is_list(L) ->
 	% mult(L, fun({_, 1}) -> -1; (_) -> 0 end). would be correct but slower
 	moebius(L, 1).
 
+% number of distinct primes that divides N
 omega(L) when is_list(L) ->
 	% add(L, fun({_, _}) -> 1 end). would be correct but slower
 	length(L).
