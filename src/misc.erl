@@ -1,6 +1,7 @@
 -module(misc).
 
--export([fib/1, fibm/2, fast_fibm/2, lucas/1, lucas/3, fact/1]).
+-export([fib/1, fibm/2, fast_fibm/2, lucas/1, lucas/3, lucasm/2, lucasm/4]).
+-export([fact/1]).
 
 -define(N60, 1152921504606846976).
 
@@ -38,6 +39,14 @@ lucas(_, B, 1) -> B;
 lucas(A, B, N) ->
 	{F1, F2} = fast_fib(N - 1),
 	A * F1 + B * F2.
+
+lucasm(N, M) -> lucasm(2, 1, N, M).
+
+lucasm(A, _, 0, M) -> A rem M;
+lucasm(_, B, 1, M) -> B rem M;
+lucasm(A, B, N, M) ->
+	{F1, F2} = fast_fibm(N - 1, M),
+	(A * F1 + B * F2) rem M.
 
 % Factorial
 fact(0) -> 1;
