@@ -19,12 +19,14 @@ fast_fibm(1, _) -> {1, 1};
 fast_fibm(2, _) -> {1, 2};
 fast_fibm(N, M) ->
 	{A, B} = fast_fibm(N bsr 1, M),
-	A2 = A * A,
+	A2 = A * A rem M,
 	B2 = B * B,
-	P = A * B,
+	P = (A * B) bsl 1,
 	case N band 1 of
-		0 -> {(P bsl 1 - A2) rem M, (A2 + B2) rem M};
-		1 -> {(A2 + B2) rem M, (P bsl 1 + B2) rem M}
+		0 ->
+			{(P - A2) rem M + case P >= A2 of true -> 0; _ -> M end,
+			(A2 + B2) rem M};
+		1 -> {(A2 + B2) rem M, (P + B2) rem M}
 	end.
 
 % Nth lucas number
