@@ -1,7 +1,3 @@
-.rebar/*
-ebin/
-test/*.beam
-logs/
 _build/
 papers/
 doc/
