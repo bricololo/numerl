@@ -16,7 +16,7 @@
 % compute the list of all primes up to N
 sieve(N) -> sieve(N, primes(N)).
 
--spec sieve(N :: integer, P :: [integer()] | tab()) -> [integer()] | tab().
+-spec sieve(N :: integer(), P :: [integer()] | tab()) -> [integer()] | tab().
 % @doc
 % returns all the primes up to N either as a list or as an ets table according
 % to the type of the second argument.
@@ -26,11 +26,11 @@ sieve(N, Primes) ->
 	W = wheel:init(tl(lists:reverse(P_list))),
 	case is_list(Primes) of
 		true -> ok;
-		_ -> ets:insert(Primes, [{P, y} || P <- P_list])
+		_ -> ets:insert(Primes, [{P} || P <- P_list])
 	end,
 	sieve(pq:new(fun cur/1, fun next/1), first(P_list), P_lim, N, Primes, W).
 
--spec foldl(N :: pos_integer(), Fun :: function, Acc :: term()) -> term().
+-spec foldl(N :: pos_integer(), Fun :: fun((_, _) -> term()), Acc :: term()) -> term().
 % @doc
 % equivalent to lists:foldl(Fun, Acc, sieve(N)) but the list of primes is not
 % built

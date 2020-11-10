@@ -46,7 +46,7 @@ fast_fibm(_) ->
 			N <- lists:seq(8, 2000, 17),
 			M <- [10, 1234567, 9876543210987654321012345],
 			C <- [T(N, M)],
-			F(N, M) =/= T],
+			F(N, M) =/= C],
 	ok.
 
 lucas(_) ->
@@ -60,8 +60,11 @@ lucas(_) ->
 
 	[] = [N || N <- lists:seq(12, 2000, 19), F(N) =/= lucas_def(N)],
 
-	% for all n: u_2n = u_n * v_n where v_i = fib(i)
-	[] = [N || N <- lists:seq(500, 600), F(2 * N) =/= F(N) * misc:fib(N)],
+	% for all n: v_2n = u_n * v_n where v_i = fib(i)
+	[] =
+		[{N, misc:fib(2 * N), F(N), misc:fib(N)} ||
+			N <- lists:seq(500, 600),
+			misc:fib(2 * N) =/= F(N) * misc:fib(N)],
 	ok.
 
 fact(_) ->
@@ -70,11 +73,18 @@ fact(_) ->
 
 fib_def(0) -> 0;
 fib_def(1) -> 1;
-fib_def(N) -> fib_def(N - 1) + fib_def(N - 2).
+%fib_def(N) -> fib_def(N - 1) + fib_def(N - 2).
+% doing a pure recursion is really too slow...
+fib_def(N) -> fib_def(0, 1, N, 2).
+
+fib_def(A, B, N, N) -> A + B;
+fib_def(A, B, Lim, N) -> fib_def(B, A + B, Lim, N + 1).
 
 lucas_def(0) -> 2;
 lucas_def(1) -> 1;
-lucas_def(N) -> lucas_def(N - 1) + lucas_def(N - 2).
+%lucas_def(N) -> lucas_def(N - 1) + lucas_def(N - 2).
+% doing a pure recursion is really too slow...
+lucas_def(N) -> fib_def(2, 1, N, 2).
 
 fact_def(0) -> 1;
 fact_def(N) -> N * fact_def(N - 1).

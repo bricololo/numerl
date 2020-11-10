@@ -95,7 +95,7 @@ ipowm(1, _, _) -> 1;
 ipowm(2, P, M) when P > ?N64, M > ?N64 -> i2powm(binary:encode_unsigned(P), M, 1);
 ipowm(N, P, M) -> ipowm(N, P, M, 1).
 
--spec jacobi(A :: integer, M :: integer) -> -1 | 0 | 1.
+-spec jacobi(A :: integer(), M :: integer()) -> -1 | 0 | 1.
 % @doc
 % Jacobi-Legendre symbol (M is supposed to be odd, caller has to ensure that)
 % jacobi(A, M) = 0 <=> gcd(A, M) =/= 1,
