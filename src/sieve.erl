@@ -57,7 +57,11 @@ b_up_to(power_smooth, B, Lim) -> b_from_to(power_smooth, B, B, Lim).
 b_from_to(smooth, B, From, To) ->
 	{Tmp, Start, Acc} = smooth:init_pq(B, {From, To}),
 	Bad = fast_bump(smooth, Tmp, From),
-	sieve(smooth, Bad, Start, To, Acc).
+	sieve(smooth, Bad, Start, To, Acc);
+b_from_to(power_smooth, B, From, To) ->
+	{Tmp, Start, Acc} = power_smooth:init_pq(B, {From, To}),
+	Bad = fast_bump(power_smooth, Tmp, From),
+	sieve(power_smooth, Bad, Start, To, Acc).
 
 % B1,B2-powersmooth numbers up to Lim
 b1b2_up_to(power_smooth, B1, B2, Lim) ->
