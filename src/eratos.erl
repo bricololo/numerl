@@ -44,11 +44,12 @@ foldl(N, Fun, Acc) ->
 %%% internals
 %%%
 
-primes(N) when N =< 10000 -> [7, 5, 3, 2];
-primes(N) when N =< 100000 -> [11, 7, 5, 3, 2];
-primes(N) when N =< 1000000 -> [13, 11, 7, 5, 3, 2];
-primes(N) when N =< 10000000 -> [17, 13, 11, 7, 5, 3, 2];
-primes(N) when N =< 100000000 -> [19, 17, 13, 11, 7, 5, 3, 2];
+primes(N) when N =< 1_000 -> [7, 5, 3, 2];
+primes(N) when N =< 10_000 -> [11, 7, 5, 3, 2];
+%primes(N) when N =< 100_000 -> [13, 11, 7, 5, 3, 2];
+primes(N) when N =< 1_000_000 -> [13, 11, 7, 5, 3, 2];
+primes(N) when N =< 10_000_000 -> [17, 13, 11, 7, 5, 3, 2];
+primes(N) when N =< 100_000_000 -> [19, 17, 13, 11, 7, 5, 3, 2];
 primes(_) -> [7, 5, 3, 2]. % small wheel to limit swapping
 
 first([23 | _]) -> 29;
