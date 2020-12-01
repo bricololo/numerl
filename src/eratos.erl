@@ -90,7 +90,7 @@ sieve(_, _, _, Primes, _) -> Primes.
 ins(N, {Fun, Acc}) -> {Fun, Fun(N, Acc)};
 ins(N, Primes) when is_list(Primes) -> [N | Primes];
 ins(N, Primes) ->
-	ets:insert(Primes, {N, y}),
+	ets:insert(Primes, {N}),
 	Primes.
 
 % lazy list of composites multiple of Prime
