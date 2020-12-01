@@ -4,7 +4,8 @@
 
 -include_lib("common_test/include/ct.hrl").
 
--define(Large, 1000000000000000000000000). % 10^24
+-define(Large, 1_000_000_000_000_000_000_000_000). % 10^24
+
 all() -> [{group, exported}].
 
 groups() ->
@@ -62,9 +63,12 @@ is_square(_) ->
 	{true, _} = Isq(9 bsl 100),
 	false = Isq(17 bsl 100),
 
-	false = Isq(193), % ok mod 8 and 63 but not mod 65
-	false = Isq(585), % ok mod 8, 63 and 65 but not mod 11
-	false = Isq(2545), % ok mod 8, 63, 65 and 11 but not a square
+	L = [X * X || X <- lists:seq(0, 51)],
+	L = [X || X <- lists:seq(0, 2700), Isq(X) =/= false],
+
+	%false = Isq(193), % ok mod 8 and 63 but not mod 65
+	%false = Isq(585), % ok mod 8, 63 and 65 but not mod 11
+	%false = Isq(2545), % ok mod 8, 63, 65 and 11 but not a square
 	ok.
 
 isqrt(_) ->
@@ -117,10 +121,15 @@ ipow(_) ->
 	undefined = F(0, 0),
 	0 = F(0, N),
 	1 = F(N, 0),
-	%1 = F(1, N),
+	1 = F(1, N),
 	N = F(N, 1),
 	1 = F(-1, N),
 	-1 = F(-1, N + 1),
+
+	L1 = [1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441],
+	L1 = [F(3, E) || E <- lists:seq(0, 12)],
+	L2 = [1,6,36,216,1296,7776,46656,279936,1679616,10077696,60466176],
+	L2 = [F(6, E) || E <- lists:seq(0, 10)],
 	ok.
 
 ipowm(_) ->

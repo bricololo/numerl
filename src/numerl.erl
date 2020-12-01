@@ -27,7 +27,7 @@ egcd(0, B) -> {B, 0, 1};
 egcd(A, 0) -> {A, 1, 0};
 egcd(A, B) -> egcd(A, B, A, 1, 0, B).
 
--spec is_square(N :: integer()) -> boolean() | {boolean(), integer()}.
+-spec is_square(N :: integer()) -> false | {true, integer()}.
 % @doc
 % a fast test. Try avoiding computing the square root if not needed.
 % returns false if N is not the square of an integer and {true, isqrt(N)} when
@@ -99,7 +99,7 @@ ipowm(N, P, M) -> ipowm(N, P, M, 1).
 % @doc
 % Jacobi-Legendre symbol (M is supposed to be odd, caller has to ensure that)
 % jacobi(A, M) = 0 <=> gcd(A, M) =/= 1,
-% jacobi(A, M) = 1 <=> A is a square mod M
+% jacobi(A, M) = 1 => A is a square mod M when M is prime
 % jacobi(A, M) = -1 <=> A is not a square mod M
 jacobi(A, M) -> jacobi(abs(A rem M), M, 1).
 
