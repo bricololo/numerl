@@ -2,11 +2,14 @@
 
 % no clear API for this module for time being :(
 
--export([odd/1, odd/2, naive/1, naive/2, fermat/1, hart/1, lehman/1]).
+-export([odd/1, odd/2, naive/1, naive/2, fermat/1, hart/1, hart/3]).
+-export([lehman/1, lehman/3]).
 -export([rho/1, rho/2, rho/3, brent/1, brent/2, brent/3, pollard/2, pollard/3]).
 -export([naive_list/3]).
 
--define(DEFAULT_LIMIT, 500000).
+% TODO: wheel and McKee
+
+-define(DEFAULT_LIMIT, 500_000).
 
 %%%
 %%% exported functions
@@ -30,11 +33,10 @@ naive(N, Limit) -> naive_list(N, min(Limit, numerl:isqrt(N) + 1)).
 naive_list(N, Lim, Primes) ->
 	case split:naive(N, Lim, Primes) of
 		{naive, ok, [Factor], Cont} ->
-			{N_N, Div} = reduce(N div Factor, [Factor]),
+			{N_N, Div} = factor_util:reduce(N div Factor, [Factor]),
 			naive_list_(N_N, Cont, Div);
 		_ -> {fail, N, Lim, []}
 	end.
-
 
 % just for curiosity, lehman is usually faster
 fermat(N) ->
@@ -52,13 +54,15 @@ hart(N) ->
 	case numerl:is_square(N) of
 		false ->
 			B = numerl:icubrt(N),
-			case naive_list(N, B, eratos:sieve(B)) of
-				{fail, N, B, []} -> split:hart(N, min(B, ?DEFAULT_LIMIT));
-				{_, _, [_ | _] = Divs} -> Divs;
-				[_ | _] = Divs -> Divs;
-				{fail, _, _, Divs} -> Divs
-			end;
+			hart(N, B, eratos:sieve(B));
 		{true, Square_root} -> [Square_root, Square_root]
+	end.
+
+hart(N, B, Primes) ->
+	case naive_list(N, B, Primes) of
+		{fail, N, B, []} -> split:hart(N, B);
+		[_ | _] = Divs -> Divs;
+		{fail, _, _, Divs} -> Divs
 	end.
 
 % some test values from Lehman article:
@@ -67,9 +71,11 @@ hart(N) ->
 % 29742315699406748437 -> 372173423 (k=25982)
 lehman(N) ->
 	B = numerl:icubrt(N),
-	case naive_list(N, B, eratos:sieve(B)) of
+	lehman(N, B, eratos:sieve(B)).
+
+lehman(N, B, Primes) ->
+	case naive_list(N, B, Primes) of
 		{fail, N, B, []} -> split:lehman_odd(N, B, 1);
-		{_, _, [H | _]} -> H;
 		{fail, _, _, Divs} -> Divs;
 		[H | _] -> H
 	end.
@@ -120,7 +126,7 @@ odd_3(N, Lim, Div) when N rem 3 =:= 0 -> odd_3(N div 3, Lim, [3 | Div]);
 odd_3(N, Lim, Div) ->
 	case split:odd(N, Lim, 5, 2) of
 		{odd, ok, [Factor], Cont} ->
-			{N_N, N_Div} = reduce(N div Factor, [Factor | Div]),
+			{N_N, N_Div} = factor_util:reduce(N div Factor, [Factor | Div]),
 			odd_(N_N, Cont, N_Div);
 		{odd, fail, 1, _, _} -> lists:reverse(Div);
 		{odd, fail, N, Lim, _} when Lim * Lim > N -> lists:reverse([N | Div]);
@@ -130,7 +136,7 @@ odd_3(N, Lim, Div) ->
 odd_(N, Cont, Div) ->
 	case split:odd_cont(N, Cont) of
 		{odd, ok, [Factor], N_Cont} ->
-			{N_N, N_Div} = reduce(N div Factor, [Factor | Div]),
+			{N_N, N_Div} = factor_util:reduce(N div Factor, [Factor | Div]),
 			odd_(N_N, N_Cont, N_Div);
 		{odd, fail, 1, _, _} -> lists:reverse(Div);
 		{odd, fail, N, Lim, _} when Lim * Lim > N -> lists:reverse([N | Div]);
@@ -148,7 +154,7 @@ naive_list(N, Lim) -> naive_list(N, Lim, eratos:sieve(Lim)).
 naive_list_(N, Cont, Div) ->
 	case split:naive_cont(N, Cont) of
 		{naive, ok, [Factor], N_Cont} ->
-			{N_N, N_Div} = reduce(N div Factor, [Factor | Div]),
+			{N_N, N_Div} = factor_util:reduce(N div Factor, [Factor | Div]),
 			naive_list_(N_N, N_Cont, N_Div);
 		{naive, fail, N, Lim, _} -> {fail, Lim, N, lists:reverse(Div)};
 		{naive, fail, N, Lim} -> final(N, Lim, hd(Div), Div) % Todo: get last P
@@ -160,6 +166,3 @@ final(N, Limit, Factor, Acc) ->
 		P when P > N -> lists:reverse([N | Acc]);
 		_ -> {fail, Limit, N, lists:reverse(Acc)}
 	end.
-
-reduce(N, [F | T]) when N rem F =:= 0 -> reduce(N div F, [F, F | T]);
-reduce(N, L) -> {N, L}.

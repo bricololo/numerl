@@ -1,6 +1,6 @@
 -module(factor_util).
 
--export([l/1, factor_base/2, sqrt_m/2 ]).
+-export([l/1, factor_base/2, sqrt_m/2, reduce/2]).
 
 l(N) ->
 	Ln = math:log(N),
@@ -24,6 +24,9 @@ sqrt_m(V, P) ->
 			end;
 		_ -> numerl:ipowm(A, P bsr 2 + 1, P)
 	end.
+
+reduce(N, [F | T]) when N rem F =:= 0 -> reduce(N div F, [F, F | T]);
+reduce(N, L) -> {N, L}.
 
 %
 % Implementation
