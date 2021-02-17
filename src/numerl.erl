@@ -1,9 +1,6 @@
 -module(numerl).
 
-%% core number theory functions.
-
--export([gcd/2, egcd/2, is_square/1, isqrt/1, icubrt/1, iroot/2]).
--export([ipow/2, ipowm/3, jacobi/2]).
+-export([gcd/2, egcd/2, isqrt/1, icubrt/1, iroot/2, ipow/2, ipowm/3, jacobi/2]).
 
 -define(N64, 16#ffffffffffffffff).
 
@@ -26,20 +23,6 @@ gcd(A, B) ->
 egcd(0, B) -> {B, 0, 1};
 egcd(A, 0) -> {A, 1, 0};
 egcd(A, B) -> egcd(A, B, A, 1, 0, B).
-
--spec is_square(N :: integer()) -> false | {true, integer()}.
-% @doc
-% a fast test. Try avoiding computing the square root if not needed.
-% returns false if N is not the square of an integer and {true, isqrt(N)} when
-% N is a square.
-is_square(N) when N < 0 -> false;
-is_square(N) when N < 2 -> {true, N};
-is_square(N) ->
-	case N band 3 of
-		0 -> is_square(N, num_util:p2(N));
-		1 -> is_square_(N, N band 7);
-		_ -> false
-	end.
 
 -spec isqrt(N :: integer()) -> atom() | integer().
 % @doc
@@ -142,49 +125,6 @@ ipowm(_, 0, _, R) -> R;
 ipowm(N, P, M, R) when P band 1 =:= 1 -> ipowm(N, P - 1, M, (R * N) rem M);
 ipowm(N, P, M, R) -> ipowm((N * N) rem M, P bsr 1, M, R).
 
-is_square(_, P2) when P2 band 1 =:= 1 -> false;
-is_square(N, P2) when P2 < 57 ->
-	is_square_(N, ((N band 16#fffffffffffffff) bsr P2) band 7);
-is_square(N, P2) -> is_square_(N, (N bsr P2) band 7).
-
-is_square_(N, 1) -> square_mod_test(N);
-is_square_(_, _) -> false.
-
-square_mod_test(N) ->
-	% 45045 = 7 * 11 * 13 * 9 * 5 = (7 * 9) * (13 * 5) * 11 = 63 * 65 * 11
-	T = N rem 45045,
-	case square_63_test(T) of
-		false -> false;
-		true -> square_mod_test2(N, T)
-	end.
-
-square_mod_test2(N, T) ->
-	case square_65_test(T) of
-		false -> false;
-		true -> square_mod_test3(N, T)
-	end.
-
-square_mod_test3(N, T) ->
-	case lists:member(T rem 11, [0,1,3,4,5,9]) of
-		false -> false;
-		true -> is_square_(N)
-	end.
-
-square_63_test(T) ->
-	lists:member(T rem 63, [0,1,4,7,9,16,18,22,25,28,36,37,43,46,49,58]).
-
-square_65_test(T) ->
-	lists:member(
-		T rem 65,
-		[0,1,4,9,10,14,16,25,26,29,30,35,36,39,40,49,51,55,56,61,64]).
-
-is_square_(N) ->
-	S = isqrt(N),
-	case S * S of
-		N -> {true, S};
-		_ -> false
-	end.
-
 isqrt(N, A) -> isqrt(N, A, (A + N div A) div 2).
 
 isqrt_candidate(N) -> 1 bsl (num_util:log2_est(N) bsr 1).
@@ -221,7 +161,6 @@ iroot(N, P, _, A) ->
 	iroot(N, P, A, ((N div ipow(A, P - 1)) + (A * (P - 1))) div P).
 
 iroot_candidate(N, P) -> 1 bsl (num_util:log2_est(N) div P).
-
 
 jacobi(0, 1, T) -> T;
 jacobi(0, _, _) -> 0;
