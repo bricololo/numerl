@@ -16,6 +16,21 @@ log2_est(N) ->
 	<<H:8, _/binary>> = BN,
 	byte_size(BN) bsl 3 - 8 + log2_bin(H).
 
+% the largest power of 2 dividing N
+p2(0) -> 0; % by convention, infinity would also makes sense
+p2(N) when N band 1 =:= 1 -> 0;
+p2(N) when N < ?N64 -> p2_64(N);
+p2(N) -> p2(N, 0).
+
+% count the numbers of bits set to 1 in N.
+hamming(N) when N < 16384 -> hamm14(N);
+hamming(N) when N < 268435456 -> hamming28(N);
+hamming(N) -> hamming_bin(binary:encode_unsigned(N), 0).
+
+%
+% Implementation
+%
+
 log2_bin(N) when N > 15 -> log2_bin_l(N);
 log2_bin(N) -> log2_bin_s(N).
 
@@ -25,12 +40,6 @@ log2_bin_l(N) -> (N band 32) bsr 5 + 5.
 log2_bin_s(N) when N > 3 -> (N band 8) bsr 3 + 3;
 log2_bin_s(0) -> 0;
 log2_bin_s(N) -> (N band 2) bsr 1 + 1.
-
-% the largest power of 2 dividing N
-p2(0) -> 0; % by convention, infinity would also makes sense
-p2(N) when N band 1 =:= 1 -> 0;
-p2(N) when N < ?N64 -> p2_64(N);
-p2(N) -> p2(N, 0).
 
 p2(N, Acc) ->
 	case N band 16#ffff_ffff_ffff_ffff of
@@ -44,11 +53,6 @@ p2_64(N) ->
 		[0,38,1,14,39,22,2,11,15,58,40,18,23,53,3,63,12,9,16,61,59,27,41,29,19,
 		50,24,43,54,46,4,31,bad,37,13,21,10,57,17,52,62,8,60,26,28,49,42,45,30,
 		36,20,56,51,7,25,48,44,35,55,6,47,34,5,33,32]).
-
-% count the numbers of bits set to 1 in N.
-hamming(N) when N < 16384 -> hamm14(N);
-hamming(N) when N < 268435456 -> hamming28(N);
-hamming(N) -> hamming_bin(binary:encode_unsigned(N), 0).
 
 hamming28(N) -> hamm14(N band 16#3fff) + hamm14((N band 16#fffc000) bsr 14).
 
