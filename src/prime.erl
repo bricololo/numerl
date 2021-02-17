@@ -4,7 +4,9 @@
 
 -export([init_pq/2, candidate/1, result/1, next_candidate/1, new_acc/2]).
 
--export([start_from/2, fast_next/2]).
+-export([fast_next/2]).
+
+-export([start_from/2, init_stream_pq/0, update_pq/2]).
 
 %
 % sieve callback functions
@@ -49,6 +51,11 @@ start_from({Val, Wheel} = Lazy, From) ->
 		Small when Small < 210 -> start(Lazy, From);
 		Large -> start_from({Val + 210 * (Large div 210), Wheel}, From)
 	end.
+
+init_stream_pq() -> pq:new(fun cur/1, fun next/1).
+
+update_pq(Pq, {Prime, Wheel}) ->
+	pq:add(Pq, np(Prime, Wheel)).
 
 %
 % Internals
