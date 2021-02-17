@@ -41,7 +41,7 @@ naive(N, Lim, _) -> {naive, fail, N, Lim}.
 fermat(N, Square, Inc) ->
 	Next_square = Square + Inc,
 	Next_inc = Inc + 2,
-	case numerl:is_square(Next_square - N) of
+	case num_lib:is_square(Next_square - N) of
 		false -> fermat(N, Next_square, Next_inc);
 		{true, Square_root} ->
 			%V = numerl:isqrt(Next_square), but faster this way
@@ -97,7 +97,7 @@ hart(N, Lim, I) when I =< Lim ->
 	Tmp = numerl:isqrt(G),
 	S = case Tmp * Tmp of G -> Tmp; _ -> Tmp + 1 end,
 	M = (S * S) rem N,
-	case numerl:is_square(M) of
+	case num_lib:is_square(M) of
 		{true, T} -> {hart, ok, [numerl:gcd(N, abs(S - T))]};
 		_ -> hart(N, Lim, I + 1)
 	end;
@@ -105,7 +105,7 @@ hart(N, Lim, I) -> {hart, fail, {N, Lim, I}}.
 
 lehman_a(A, Max, _, _) when A * A > Max -> nope;
 lehman_a(A, Max, Inc, Cst) ->
-	case numerl:is_square(A * A - Cst) of
+	case num_lib:is_square(A * A - Cst) of
 		false -> lehman_a(A + Inc, Max, Inc, Cst);
 		{true, B} -> A + B
 	end.

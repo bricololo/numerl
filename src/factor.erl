@@ -40,7 +40,7 @@ naive_list(N, Lim, Primes) ->
 
 % just for curiosity, lehman is usually faster
 fermat(N) ->
-	case numerl:is_square(N) of
+	case num_lib:is_square(N) of
 		false ->
 			R = numerl:isqrt(N),
 			T = R + 1,
@@ -51,7 +51,7 @@ fermat(N) ->
 
 % a quite recent algorithm (2012)
 hart(N) ->
-	case numerl:is_square(N) of
+	case num_lib:is_square(N) of
 		false ->
 			B = numerl:icubrt(N),
 			hart(N, B, eratos:sieve(B));

@@ -45,7 +45,7 @@ fibonacci_test(N) ->
 lucas_test(N) -> lucas_test(N, 1, 2).
 lucas_test(N, A, B) ->
 	D = A * A - 4 * B,
-	case numerl:is_square(D) of
+	case num_lib:is_square(D) of
 		{true, _} -> {wrong_choice_of_parameters, A, B};
 		false ->
 			case numerl:gcd(N, 2 * B * D) of
