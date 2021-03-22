@@ -17,7 +17,11 @@ is_square(N) ->
 		_ -> false
 	end.
 
-% assuming N >= 0
+is_cube(N) when N < 0 ->
+	case is_cube(-N) of
+		false -> false;
+		{_, C} -> {true, -C}
+	end;
 is_cube(N) when N < 2 -> {true, N};
 is_cube(N) when N < 8_000 ->
 	case sorted_list_member(
@@ -119,7 +123,9 @@ is_cube_(N) ->
 		_ -> false
 	end.
 
-% when M - 1 is a power of the right size we just need to test up to M/2
+% when M is suitable we just need to test up to M/2.
+% when testing for square we need M - 1 to be an even square
+% for cubes I got them experimentally, no clear patterns
 test(T, M, L) ->
 	R = T rem M,
 	V = min(R, M - R),
