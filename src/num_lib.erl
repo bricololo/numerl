@@ -5,18 +5,23 @@
 
 -spec is_square(N :: integer()) -> false | {true, integer()}.
 % @doc
-% a fast test. Try avoiding computing the square root if not needed.
-% returns false if N is not the square of an integer and {true, isqrt(N)} when
-% N is a square.
+% Returns false if N is not the square of an integer and {true, numerl:isqrt(N)}
+% when N is a square.
+% a fast test, most of the time computing the square root of N is avoided, as an
+% example: 99.77% of the odd non squares below 10^8 are discarded without
+% isqrt/1 and the ratio assymptotally grow above 99.96%
 is_square(N) when N < 0 -> false;
 is_square(N) when N < 2 -> {true, N};
 is_square(N) ->
 	case N band 3 of
-		0 -> is_square(N, num_util:p2(N));
-		1 -> is_square_(N, N band 7);
+		0 -> is_even_square(N, num_util:p2(N));
+		1 -> is_odd_square(N, N band 7);
 		_ -> false
 	end.
 
+% @doc
+% a fast test. Try avoiding computing the cube root if not needed. Returns false
+% if N is not the cube of an integer and {true, icubrt(N)} when N is a cube.
 is_cube(N) when N < 0 ->
 	case is_cube(-N) of
 		false -> false;
@@ -41,13 +46,16 @@ is_cube(N) ->
 % Implementation
 %
 
-is_square(_, P2) when P2 band 1 =:= 1 -> false;
-is_square(N, P2) when P2 < 57 ->
-	is_square_(N, ((N band 16#fffffffffffffff) bsr P2) band 7);
-is_square(N, P2) -> is_square_(N, (N bsr P2) band 7).
+is_even_square(_, P2) when P2 band 1 =:= 1 -> false;
+is_even_square(N, P2) ->
+	N_odd = N bsr P2,
+	case is_odd_square(N_odd, N_odd band 7) of
+		false -> false;
+		{_, Root} -> {true, Root bsl (P2 bsr 1)}
+	end.
 
-is_square_(N, 1) -> square_mod_test(N);
-is_square_(_, _) -> false.
+is_odd_square(N, 1) -> square_mod_test(N);
+is_odd_square(_, _) -> false.
 
 square_mod_test(N) ->
 	% 4 382 217 840 = 208 * 231 * 145 * 37 * 17
@@ -62,6 +70,8 @@ square_mod_test(N) ->
 		true -> is_square_(N)
 	end.
 
+% as this test is applied only on odd values, we can skip the even remainders
+% and thus make the list twice as short
 square_208_test(T) ->
 	lists:member(T rem 208, [1,9,17,25,49,65,81,105,113,121,129,153,169,185]).
 
@@ -110,7 +120,7 @@ cube_103_test(T) ->
 	test(T, 103, [0,1,3,8,9,10,13,14,22,23,24,27,30,31,34,37,39,42]).
 
 is_cube_(N) ->
-	C = inumerl:icubrt(N),
+	C = numerl:icubrt(N),
 	case C * C * C of
 		N -> {true, C};
 		_ -> false
