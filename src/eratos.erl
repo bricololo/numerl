@@ -28,7 +28,7 @@ sieve(N, Primes) ->
 		true -> ok;
 		_ -> ets:insert(Primes, [{P} || P <- P_list])
 	end,
-	sieve(pq:new(fun cur/1, fun next/1), first(P_list), P_lim, N, Primes, W).
+	sieve(pq_heap:new(fun next/1), first(P_list), P_lim, N, Primes, W).
 
 -spec foldl(N :: pos_integer(), Fun :: fun((_, _) -> term()), Acc :: term()) -> term().
 % @doc
@@ -38,7 +38,7 @@ foldl(N, Fun, Acc) ->
 	P_lim = numerl:isqrt(N),
 	W = wheel:init([3, 5, 7]),
 	N_acc = lists:foldl(Fun, Acc, [2, 3, 5, 7]),
-	sieve(pq:new(fun cur/1, fun next/1), 11, P_lim, N, {Fun, N_acc}, W).
+	sieve(pq_heap:new(fun next/1), 11, P_lim, N, {Fun, N_acc}, W).
 
 %%%
 %%% internals
@@ -55,7 +55,7 @@ primes(_) -> [7, 5, 3, 2]. % small wheel to limit swapping
 first([23 | _]) -> 29;
 first([H | _]) when H < 31 -> H + 5 - (H rem 6 + 1) div 2.
 
-% Comp is a sorted heap of known composites
+% Comp is a priority queue of known composites
 % N is a prime candidate
 % P_lim is the maximum prime to verify
 % Lim is the target number
@@ -64,23 +64,22 @@ first([H | _]) when H < 31 -> H + 5 - (H rem 6 + 1) div 2.
 % W is a wheel of deltas
 
 % we don't need to add lists of composites anymore
-sieve(Comp, N, P_lim, Lim, Primes, W) when N > P_lim ->
-	sieve(Comp, N, Lim, Primes, W);
+sieve(Comp,N,P_lim,Lim,Primes,W) when N > P_lim -> sieve(Comp,N,Lim,Primes,W);
 % sieving out the next composite
 sieve(Comp, N, P_lim, Lim, Primes, W) ->
 	{Inc, W2} = wheel:next(W),
-	case pq:val(Comp) of
+	case pq_heap:val(Comp) of
 		% N is composite
-		N -> sieve(pq:bump(Comp, N), N + Inc, P_lim, Lim, Primes, W2);
-		% N is indeed prime we need to add the list of its multiple to Comp
-		_ -> sieve(pq:add(Comp,np(N,W)), N+Inc, P_lim, Lim, ins(N,Primes), W2)
+		N -> sieve(pq_heap:bump(Comp, N), N + Inc, P_lim, Lim, Primes, W2);
+		% N is indeed prime we add the list of its multiple to Comp
+		_ -> sieve(pq_heap:add(Comp,np(N,W)),N+Inc,P_lim,Lim,ins(N,Primes),W2)
 	end.
 
 % sieving out the composites until we reach the target
 sieve(Comp, N, Lim, Primes, W) when N =< Lim ->
 	{Inc, W2} = wheel:next(W),
-	case pq:val(Comp) of
-		N -> sieve(pq:bump(Comp, N), N + Inc, Lim, Primes, W2);
+	case pq_heap:val(Comp) of
+		N -> sieve(pq_heap:bump(Comp, N), N + Inc, Lim, Primes, W2);
 		_ -> sieve(Comp, N + Inc, Lim, ins(N, Primes), W2)
 	end;
 sieve(_, _, _, {_, Acc}, _) -> Acc;
@@ -94,12 +93,9 @@ ins(N, Primes) ->
 	Primes.
 
 % lazy list of composites multiple of Prime
-np(Prime, Wheel) -> {Prime, Wheel, Prime * Prime}.
-
-% head of the lazy list
-cur({_, _, V}) -> V.
+np(Prime, Wheel) -> {Prime * Prime, Wheel, Prime}.
 
 % tail of the lazy list
-next({Prime, Wheel, M}) ->
+next({Mult, Wheel, Prime}) ->
 	{Inc, W2} = wheel:next(Wheel),
-	{Prime, W2, Prime * Inc + M}.
+	{Prime * Inc + Mult, W2, Prime}.

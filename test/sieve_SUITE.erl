@@ -18,7 +18,7 @@ groups() ->
 		 prime_1_000,
 		 prime_10_000,
 		 prime_100_000,
-		 prime_1000_000]
+		 prime_1_000_000]
 	 },
 	 {internal, [shuffle],[]}].
 
@@ -69,7 +69,7 @@ prime_from_to(_) ->
 
 prime_from_to_large(_) ->
 	Result = sieve:from_to(prime, 8_000, 10_000),
-	Result = [P || P <- sieve:up_to(prime, 1_0000), P >= 8_000],
+	Result = [P || P <- sieve:up_to(prime, 10_000), P >= 8_000],
 	ok.
 
 prime_ets_from_to(_) ->
@@ -89,8 +89,8 @@ prime_10_000(Conf) ->
 	sieve([{value, 10_000}, {length, 1229}, {last, 9973} | Conf]).
 prime_100_000(Conf) ->
 	sieve([{value, 100_000}, {length, 9592}, {last, 99991} | Conf]).
-prime_1000_000(Conf) ->
-	sieve([{value, 1000_000}, {length, 78498}, {last, 999983} | Conf]).
+prime_1_000_000(Conf) ->
+	sieve([{value, 1_000_000}, {length, 78498}, {last, 999983} | Conf]).
 
 sieve(Conf) ->
 	Result = sieve:up_to(prime, proplists:get_value(value, Conf)),
