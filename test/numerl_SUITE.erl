@@ -12,8 +12,7 @@ groups() ->
 	[
 		{exported,
 			[shuffle],
-			[gcd, egcd, is_square, isqrt, icubrt, iroot, ipow,
-				ipowm, jacobi]
+			[gcd, egcd, isqrt, icubrt, iroot, ipow, ipowm, jacobi]
 		},
 		{internal, [shuffle], []}
 	].
@@ -48,28 +47,6 @@ egcd(_) ->
 	{5, -1, -1} = F(20, -25),
 	ok.
 
-is_square(_) ->
-	Isq = fun(N) -> numerl:is_square(N) end,
-
-	false = Isq(-5),
-	{true, 0} = Isq(0),
-	{true, 1} = Isq(1),
-	false = Isq(2),
-
-	{true, 2} = Isq(4),
-	false = Isq(8),
-	{true, _} = Isq(9 bsl 56),
-	false = Isq(11 bsl 56),
-	{true, _} = Isq(9 bsl 100),
-	false = Isq(17 bsl 100),
-
-	L = [X * X || X <- lists:seq(0, 51)],
-	L = [X || X <- lists:seq(0, 2700), Isq(X) =/= false],
-
-	%false = Isq(193), % ok mod 8 and 63 but not mod 65
-	%false = Isq(585), % ok mod 8, 63 and 65 but not mod 11
-	%false = Isq(2545), % ok mod 8, 63, 65 and 11 but not a square
-	ok.
 
 isqrt(_) ->
 	Isqrt = fun(N) -> numerl:isqrt(N) end,

@@ -58,14 +58,13 @@ is_odd_square(N, 1) -> square_mod_test(N);
 is_odd_square(_, _) -> false.
 
 square_mod_test(N) ->
-	% 4 382 217 840 = 208 * 231 * 145 * 37 * 17
-	T = N rem 4_382_217_840,
+	% 438 918 480 = 208 * 231 * 63 * 145
+	T = N rem 438_918_480,
 	case 
 		square_208_test(T) andalso
 		square_231_test(T) andalso
-		square_145_test(T) andalso
-		square_37_test(T) andalso
-		square_17_test(T) of
+		square_63_test(T) andalso
+		square_145_test(T) of
 		false -> false;
 		true -> is_square_(N)
 	end.
@@ -82,13 +81,12 @@ square_231_test(T) ->
 			147, 148, 154, 163, 165, 168, 169, 177, 190, 196, 198, 207, 210,
 			214, 225]).
 
+square_63_test(T) ->
+	lists:member(T rem 63, [0,1,4,7,9,16,18,22,25,28,36,37,43,46,49,58]).
+
 square_145_test(T) ->
 	test(T, 145,
 		[0,1,4,5,6,9,16,20,24,25,29,30,34,35,36,45,49,51,54,59,64,65,71]).
-
-square_37_test(T) -> test(T, 37, [0, 1, 3, 4, 7, 9, 10, 11, 12, 16]).
-
-square_17_test(T) -> test(T, 17, [0, 1, 2, 4, 8]).
 
 is_square_(N) ->
 	S = numerl:isqrt(N),
@@ -106,8 +104,8 @@ cube_mod_test(N) ->
 		cube_252_test(T) andalso 
 		cube_247_test(T) andalso 
 		cube_103_test(T) of 
-			false -> false;
-			true -> is_cube_(N)
+		false -> false;
+		true -> is_cube_(N)
 	end.
 
 cube_252_test(T) ->
