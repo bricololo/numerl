@@ -27,7 +27,6 @@ seed(Divs, Count) ->
 	Start = lists:max(Divs) + 2,
 	seed(Divs, Start, 0, Count, []).
 
-
 seed(_, _, Count, Count, Acc) -> lists:reverse(Acc);
 seed(Divs, C, Length, Count, Acc) ->
 	case check(Divs, C) of
