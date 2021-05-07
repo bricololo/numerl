@@ -1,7 +1,7 @@
 -module(num_lib).
 
 %-compile(export_all).
--export([is_square/1, is_cube/1, sorted_list_member/2]).
+-export([is_square/1, is_cube/1]).
 
 -spec is_square(N :: integer()) -> false | {true, integer()}.
 % @doc
@@ -24,7 +24,7 @@ is_cube(N) when N < 0 ->
 	end;
 is_cube(N) when N < 2 -> {true, N};
 is_cube(N) when N < 8_000 ->
-	case sorted_list_member(
+	case lists:member(
 			N,
 			[8, 27, 64, 125, 216, 343, 512, 729, 1_000, 1_331, 1_728, 2_197,
 				2_744, 3_375, 4_096, 4_913, 5_832, 6_859]) of
@@ -36,11 +36,6 @@ is_cube(N) ->
 		0 -> is_cube(N, num_util:p2(N));
 		1 -> cube_mod_test(N)
 	end.
-
-sorted_list_member(E, [H | _]) when E < H -> false;
-sorted_list_member(E, [E | _]) -> true;
-sorted_list_member(E, [_ | T]) -> sorted_list_member(E, T);
-sorted_list_member(_, []) -> false.
 
 %
 % Implementation
@@ -68,12 +63,10 @@ square_mod_test(N) ->
 	end.
 
 square_208_test(T) ->
-	sorted_list_member(T rem 208,
-		[0, 1, 4, 9, 16, 17, 25, 36, 48, 49, 52, 64, 65, 68, 81, 100, 105, 113,
-			116, 121, 129, 144, 153, 160, 169, 185, 192, 196]).
+	lists:member(T rem 208, [1,9,17,25,49,65,81,105,113,121,129,153,169,185]).
 
 square_231_test(T) ->
-	sorted_list_member(T rem 231,
+	lists:member(T rem 231,
 		[0, 1, 4, 9, 15, 16, 22, 25, 36, 37, 42, 49, 58, 60, 64, 67, 70, 78, 81,
 			88, 91 ,93, 99, 100, 102, 114, 121, 126, 130, 133, 135, 141, 144,
 			147, 148, 154, 163, 165, 168, 169, 177, 190, 196, 198, 207, 210,
@@ -129,4 +122,4 @@ is_cube_(N) ->
 test(T, M, L) ->
 	R = T rem M,
 	V = min(R, M - R),
-	sorted_list_member(V, L).
+	lists:member(V, L).
