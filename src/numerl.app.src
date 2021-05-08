@@ -2,7 +2,14 @@
  [
   {description, "An Erlang number theory library"},
   {vsn, "1"},
-  {modules, [numerl, num_util, eratos, wheel, pq_heap, pq_skew, primes, misc, arith_funs]},
+  {modules, [
+			 % core modules
+			 numerl, num_lib, num_util, arith_funs, primes,
+			 % sieve related modules
+			 sieve, prime, smooth, power_smooth, squarefree,
+			 wheel, pq_heap, pq_skew,
+			 % other modules
+			 eratos]},
   {registered, []},
   {applications, [
                   kernel,

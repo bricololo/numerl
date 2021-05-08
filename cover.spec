@@ -1,5 +1,5 @@
 {incl_dirs, ["./src/"]}.
 {incl_mods,
-	[eratos, misc, numerl, num_util, primes, wheel, pq_heap, pq_skew, factor,
-		split, arith_funs, sieve, prime]}.
+	[eratos, num_lib, numerl, num_util, primes, wheel, pq_heap, pq_skew,
+		arith_funs, sieve, prime]}.
 {level, details}.
