@@ -99,7 +99,7 @@ is_prime(N, K) ->
 %% Implementation
 %%
 
-% at this point N has no divisor less than 97
+% at this point N has no divisor less than 103 
 possible_prime(N) -> possible_prime(N, 20).
 possible_prime(N, C) ->
 	case N rem 5 of
