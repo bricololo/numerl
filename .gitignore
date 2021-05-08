@@ -1,3 +1,6 @@
 _build/
 papers/
 doc/
+test/*.beam
+.rebar/
+logs/
