@@ -90,10 +90,15 @@ lucas_test(_) ->
 	true = F3(1009, 1, 3),
 	{wrong_choice_of_parameters, 5, 4} = F3(1009, 5, 4),
 
-	% TODO: any lucas pseudo primes ?
 	false = F(341),
 	false = F(1 bsl 32 + 1),
 
+	% Lucas pseudoprimes
+	true = F(705), % 3 * 5 * 47
+	true = F(2465), % 5 * 17 * 29
+	true = F(2737), % 7 * 17 * 23
+
+	% Carmichael numbers
 	false = F(561),
 	false = F(1729),
 	false = F(8719309),
