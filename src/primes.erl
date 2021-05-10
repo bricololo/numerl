@@ -37,7 +37,7 @@ strong_test(N, B) ->
 	end.
 
 fibonacci_test(N) ->
-	case misc:fibm(N - numerl:jacobi(N, 5), N) of
+	case num_lib:fibm(N - numerl:jacobi(N, 5), N) of
 		0 -> true;
 		_ -> false
 	end.
@@ -110,7 +110,7 @@ possible_prime(N, C) ->
 
 fib_and_fermat(N) ->
 	case fermat_test(N, 2) of
-		true -> misc:fibm(N + 1, N) =:= 0;
+		true -> num_lib:fibm(N + 1, N) =:= 0;
 		Else -> Else
 	end.
 
@@ -145,7 +145,7 @@ strong_test(B, S, N) ->
 % TODO : fix it.
 lucas_test(N, A, B, D) ->
 	E = numerl:jacobi(D, N),
-	{F1, F2} = misc:fast_fibm(N - E, N),
+	{F1, F2} = num_lib:fast_fibm(N - E, N),
 	case (A * F1 + B * F2) rem N of
 		0 -> true;
 		_ -> {false, A, B}

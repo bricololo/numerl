@@ -11,8 +11,9 @@ groups() ->
 		{internal, [shuffle], []}].
 
 fib(_) ->
-	F = fun(N) -> misc:fib(N) end,
+	F = fun(N) -> num_lib:fib(N) end,
 
+	1 = F(1),
 	1 = F(2),
 	2 = F(3),
 	3 = F(4),
@@ -24,13 +25,13 @@ fib(_) ->
 	ok.
 
 fibm(_) ->
-	F = fun(N) -> misc:fib(N) end,
-	G = fun(N) -> misc:fibm(N, N) end,
+	F = fun(N) -> num_lib:fib(N) end,
+	G = fun(N) -> num_lib:fibm(N, N) end,
 
 	Result = lists:duplicate(10, true),
 	Result = [F(N) rem N =:= G(N) || N <- lists:seq(100, 1000, 100)],
 
-	H = fun(N, M) -> misc:fibm(N, M) end,
+	H = fun(N, M) -> num_lib:fibm(N, M) end,
 	[] =
 		[{N, F(N) rem 1000, H(N, 1000)} ||
 			N <- lists:seq(1, 1000),
@@ -38,7 +39,7 @@ fibm(_) ->
 	ok.
 
 fast_fibm(_) ->
-	F = fun(N, M) -> misc:fast_fibm(N, M) end,
+	F = fun(N, M) -> num_lib:fast_fibm(N, M) end,
 	T = fun(N, M) -> {fib_def(N) rem M, fib_def(N + 1) rem M} end,
 
 	[] =
@@ -50,8 +51,10 @@ fast_fibm(_) ->
 	ok.
 
 lucas(_) ->
-	F = fun(N) -> misc:lucas(N) end,
+	F = fun(N) -> num_lib:lucas(N) end,
 
+	2 = F(0),
+	1 = F(1),
 	3 = F(2),
 	4 = F(3),
 	7 = F(4),
@@ -62,13 +65,13 @@ lucas(_) ->
 
 	% for all n: v_2n = u_n * v_n where v_i = fib(i)
 	[] =
-		[{N, misc:fib(2 * N), F(N), misc:fib(N)} ||
+		[{N, num_lib:fib(2 * N), F(N), num_lib:fib(N)} ||
 			N <- lists:seq(500, 600),
-			misc:fib(2 * N) =/= F(N) * misc:fib(N)],
+			num_lib:fib(2 * N) =/= F(N) * num_lib:fib(N)],
 	ok.
 
 fact(_) ->
-	[] = [N || N <- lists:seq(20, 50), misc:fact(N) =/= fact_def(N)],
+	[] = [N || N <- [0, 1 | lists:seq(20, 50)], num_lib:fact(N) =/= fact_def(N)],
 	ok.
 
 is_square(_) ->
