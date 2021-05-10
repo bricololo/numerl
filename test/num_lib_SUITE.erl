@@ -7,12 +7,14 @@
 all() -> [{group, exported}].
 
 groups() ->
-	[{exported, [shuffle], [fib, fibm, fast_fibm, lucas, fact, is_square]},
-		{internal, [shuffle], []}].
+	[{exported, [shuffle],
+		[fib, fibm, fast_fibm, lucas, lucasm, fact, is_square, is_cube]},
+	 {internal, [shuffle], []}].
 
 fib(_) ->
 	F = fun(N) -> num_lib:fib(N) end,
 
+	0 = F(0),
 	1 = F(1),
 	1 = F(2),
 	2 = F(3),
@@ -34,7 +36,7 @@ fibm(_) ->
 	H = fun(N, M) -> num_lib:fibm(N, M) end,
 	[] =
 		[{N, F(N) rem 1000, H(N, 1000)} ||
-			N <- lists:seq(1, 1000),
+			N <- lists:seq(0, 1000),
 			(F(N) rem 1000) =/= H(N, 1000)],
 	ok.
 
@@ -70,6 +72,35 @@ lucas(_) ->
 			num_lib:fib(2 * N) =/= F(N) * num_lib:fib(N)],
 	ok.
 
+lucasm(_) ->
+	F2 = fun(N, M) -> num_lib:lucasm(N, M) end,
+	F4 = fun(A, B, N, M) -> num_lib:lucasm(A, B, N, M) end,
+
+	2 = F2(0, 10),
+	2 = F4(2, 1, 0, 10),
+	3 = F4(3, 1, 0, 10),
+
+	1 = F2(1, 10),
+	1 = F4(2, 1, 1, 10),
+	2 = F4(3, 2, 1, 10),
+
+	3 = F2(2, 10),
+	3 = F4(2, 1, 2, 10),
+	5 = F4(3, 2, 2, 10),
+
+	1 = F2(5, 10),
+	8 = F2(6, 10),
+
+	% TODO: find a relation between fib seq and lucas seq when {A, B} is not
+	% {2, 1}
+%	L = fun(N) -> F4(3, 2, N, 10_000) end,
+%	F = fun(N) -> num_lib:fibm(N, 10_000) end,
+%	[] =
+%		[{N, F(2 * N), L(N), F(N)} ||
+%			N <- lists:seq(123, 456, 17),
+%			F(2 * N) =/= L(N) * F(N)],
+	ok.
+
 fact(_) ->
 	[] = [N || N <- [0, 1 | lists:seq(20, 50)], num_lib:fact(N) =/= fact_def(N)],
 	ok.
@@ -100,6 +131,31 @@ is_square(_) ->
 	false = Isq(1401), % ok mod 8, 208, 231 and 145 but not mod 37
 	false = Isq(7401), % ok mod 8, 208, 231, 145 and 37 but not mod 17
 	false = Isq(1785), % ok mod 8, 208, 231 and 145, 37 and 17 but not square
+	ok.
+
+is_cube(_) ->
+	F = fun(N) -> num_lib:is_cube(N) end,
+
+	% edge cases
+	{true, 0} = F(0),
+	{true, 1} = F(1),
+	false = F(7),
+	{true, 2} = F(8),
+	false = F(9),
+	{true, 20} = F(8_000),
+	false = F(7_999),
+	false = F(8_001),
+
+	% negative numbers
+	{true, -1} = F(-1),
+	false = F(-7),
+	false = F(-9),
+	{true, -5} = F(-125),
+	{true, -20} = F(-8_000),
+
+	% coverage...
+	L = [X * X * X || X <- lists:seq(20, 200)],
+	L = [X || X <- lists:seq(8_000, 8_000_000), F(X) =/= false],
 	ok.
 
 fib_def(0) -> 0;
