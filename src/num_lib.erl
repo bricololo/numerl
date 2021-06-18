@@ -1,5 +1,5 @@
 %% This module regroups small utility functions which are of limited interest by
-%& themselve but are needed as building blocks of more useful functions.
+%% themselve but are needed as building blocks of more useful functions.
 
 -module(num_lib).
 
@@ -8,7 +8,7 @@
 -export([fact/1]).
 -export([is_square/1, is_cube/1]).
 
--define(N64, 18446744073709551616).
+-define(N64, 18_446_744_073_709_551_616).
 
 % Fibonacci
 fib(0) -> 0;
@@ -64,8 +64,8 @@ fact(N) -> fact(N, N - 2, 1, []).
 % Returns false if N is not the square of an integer and {true, numerl:isqrt(N)}
 % when N is a square.
 % a fast test, most of the time computing the square root of N is avoided, as an
-% example: 99.77% of the odd non squares below 10^8 are discarded without
-% isqrt/1 and the ratio assymptotally grow above 99.96%
+% example: 99.54% of the odd non squares below 10^8 are discarded without
+% calling numerl:isqrt/1
 is_square(N) when N < 0 -> false;
 is_square(N) when N < 2 -> {true, N};
 is_square(N) ->
@@ -137,35 +137,43 @@ is_odd_square(N, 1) -> square_mod_test(N);
 is_odd_square(_, _) -> false.
 
 square_mod_test(N) ->
-	% 438 918 480 = 208 * 231 * 63 * 145
-	T = N rem 438_918_480,
-	case 
-		square_208_test(T) andalso
-		square_231_test(T) andalso
-		square_63_test(T) andalso
-		square_145_test(T) of
+	% 3 051 123 075 = 225 * 247 * 253 * 217
+	T = N rem 3_051_123_075,
+	case
+		square_225_test(T) andalso % 3 * 3 * 5 * 5
+		square_247_test(T) andalso % 13 * 19
+		square_253_test(T) andalso % 11 * 23
+		square_217_test(T) of      % 7 * 31
 		false -> false;
 		true -> is_square_(N)
 	end.
 
-% as this test is applied only on odd values, we can skip the even remainders
-% and thus make the list twice as short
-square_208_test(T) ->
-	lists:member(T rem 208, [1,9,17,25,49,65,81,105,113,121,129,153,169,185]).
+square_225_test(T) ->
+	lists:member(T rem 225,
+		[0,1,4,9,16,19,25,31,34,36,46,49,54,61,64,76,79,81,91,94,99,100,106,109,
+			121,124,126,136,139,144,151,154,166,169,171,175,181,184,189,196,199,
+			211,214,216]).
 
-square_231_test(T) ->
-	lists:member(T rem 231,
-		[0, 1, 4, 9, 15, 16, 22, 25, 36, 37, 42, 49, 58, 60, 64, 67, 70, 78, 81,
-			88, 91 ,93, 99, 100, 102, 114, 121, 126, 130, 133, 135, 141, 144,
-			147, 148, 154, 163, 165, 168, 169, 177, 190, 196, 198, 207, 210,
-			214, 225]).
+square_247_test(T) ->
+	lists:member(T rem 247,
+		[0,1,4,9,16,17,23,25,26,30,35,36,38,39,42,43,49,55,61,62,64,66,68,74,77,
+			81,82,87,92,95,100,101,104,114,118,120,121,130,131,133,134,139,140,
+			142,144,152,153,156,157,159,168,169,172,178,182,191,194,195,196,199,
+			207,209,218,220,225,233,234,235,237,244]).
 
-square_63_test(T) ->
-	lists:member(T rem 63, [0,1,4,7,9,16,18,22,25,28,36,37,43,46,49,58]).
+square_253_test(T) ->
+	lists:member(T rem 253,
+		[0,1,3,4,9,12,16,23,25,26,27,31,36,47,48,49,55,58,59,64,69,70,71,75,77,
+			78,81,82,92,93,100,104,108,110,115,119,121,124,133,141,144,146,147,
+			154,163,165,169,170,174,177,179,185,187,188,190,192,196,202,207,209,
+			210,213,220,223,225,231,232,234,236,242,243,246]).
 
-square_145_test(T) ->
-	test(T, 145,
-		[0,1,4,5,6,9,16,20,24,25,29,30,34,35,36,45,49,51,54,59,64,65,71]).
+square_217_test(T) ->
+	lists:member(T rem 217,
+		[0,1,2,4,7,8,9,14,16,18,25,28,32,35,36,39,49,50,51,56,63,64,67,70,71,72,
+			78,81,93,95,98,100,102,107,109,112,113,121,126,128,133,134,140,142,
+			144,149,155,156,162,163,165,169,175,183,186,190,191,193,196,200,204,
+			205,211,214]).
 
 is_square_(N) ->
 	S = numerl:isqrt(N),
@@ -178,11 +186,11 @@ is_cube(N, P2) -> case P2 rem 3 of 0 -> cube_mod_test(N); _ -> false end.
 
 cube_mod_test(N) ->
 	% 6 411 132 = 252 * 247 * 103
+	% 252 = 2 * 2 * 3 * 3 * 7
+	% 247 = 13 * 19
+	% 103 is prime
 	T = N rem 6_411_132,
-	case
-		cube_252_test(T) andalso 
-		cube_247_test(T) andalso 
-		cube_103_test(T) of 
+	case cube_252_test(T) andalso cube_247_test(T) andalso cube_103_test(T) of
 		false -> false;
 		true -> is_cube_(N)
 	end.

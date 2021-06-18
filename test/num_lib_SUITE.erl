@@ -125,12 +125,11 @@ is_square(_) ->
 
 	false = Isq(8), % ok mod 4 but an odd number of trailing 0
 	false = Isq(48), % ok mod 4, even number of trailing 0 but not a square
-	false = Isq(33), % ok mod 8 but not mod 208
-	false = Isq(17), % ok mod 8 and 208 but not mod 231
-	false = Isq(273), % ok mod 8, 208 and 231 but not mod 145
-	false = Isq(1401), % ok mod 8, 208, 231 and 145 but not mod 37
-	false = Isq(7401), % ok mod 8, 208, 231, 145 and 37 but not mod 17
-	false = Isq(1785), % ok mod 8, 208, 231 and 145, 37 and 17 but not square
+	false = Isq(17), % ok mod 8 but not mod 225
+	false = Isq(241), % ok mod 8 and 225 but not mod 247
+	false = Isq(481), % ok mod 8, 225 and 247 but not mod 253
+	false = Isq(1881), % ok mod 8, 225, 247 and 253 but not mod 217
+	false = Isq(28809), % ok mod 8, 225, 247, 253 and 217 but not a square
 	ok.
 
 is_cube(_) ->
