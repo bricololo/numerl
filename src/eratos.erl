@@ -61,27 +61,30 @@ first([H | _]) when H < 31 -> H + 5 - (H rem 6 + 1) div 2.
 % Lim is the target number
 % Primes is the (growing) list/ets table of primes found or the accumulated
 % result of the provided function so far in case of foldl
-% W is a wheel of deltas
+% Wheel is a wheel of deltas
 
 % we don't need to add lists of composites anymore
-sieve(Comp,N,P_lim,Lim,Primes,W) when N > P_lim -> sieve(Comp,N,Lim,Primes,W);
+sieve(Comp, N, P_lim, Lim, Primes, Wheel) when N > P_lim ->
+	sieve(Comp, N, Lim, Primes, Wheel);
 % sieving out the next composite
-sieve(Comp, N, P_lim, Lim, Primes, W) ->
-	{Inc, W2} = wheel:next(W),
-	case pq_heap:val(Comp) of
-		% N is composite
-		N -> sieve(pq_heap:bump(Comp, N), N + Inc, P_lim, Lim, Primes, W2);
-		% N is indeed prime we add the list of its multiple to Comp
-		_ -> sieve(pq_heap:add(Comp,np(N,W)),N+Inc,P_lim,Lim,ins(N,Primes),W2)
-	end.
+sieve(Comp, N, P_lim, Lim, Primes, Wheel) ->
+	{N_comp, N_primes} = if_prime(Comp, N, Primes, Wheel),
+	{Inc, Wheel2} = wheel:next(Wheel),
+	sieve(N_comp, N + Inc, P_lim, Lim, N_primes, Wheel2).
+
+if_prime(Comp, N, Primes, Wheel) ->
+	if_prime(Comp, N, Primes, Wheel, pq_heap:val(Comp)).
+
+if_prime(Comp, N, Primes, _, N) -> % N is composite
+	{pq_heap:bump(Comp, N), Primes};
+if_prime(Comp, N, Primes, Wheel, _) -> % N is prime
+	{pq_heap:add(Comp, np(N, Wheel)), ins(N, Primes)}.
 
 % sieving out the composites until we reach the target
-sieve(Comp, N, Lim, Primes, W) when N =< Lim ->
-	{Inc, W2} = wheel:next(W),
-	case pq_heap:val(Comp) of
-		N -> sieve(pq_heap:bump(Comp, N), N + Inc, Lim, Primes, W2);
-		_ -> sieve(Comp, N + Inc, Lim, ins(N, Primes), W2)
-	end;
+sieve(Comp, N, Lim, Primes, Wheel) when N =< Lim ->
+	{N_comp, N_primes} = if_prime(Comp, N, Primes, Wheel),
+	{Inc, Wheel2} = wheel:next(Wheel),
+	sieve(N_comp, N + Inc, Lim, N_primes, Wheel2);
 sieve(_, _, _, {_, Acc}, _) -> Acc;
 sieve(_, _, _, Primes, _) when is_list(Primes) -> lists:reverse(Primes);
 sieve(_, _, _, Primes, _) -> Primes.
