@@ -5,18 +5,12 @@
 
 -define(N64, 16#ffffffffffffffff).
 
-%% API
-
 -spec gcd(A :: integer(), B :: integer()) -> integer().
 % @doc
 % greatest common divisor using euclid algorithm
-gcd(A, B) ->
-	AA = abs(A),
-	AB = abs(B),
-	case AA > AB of
-		false -> euclid(AB, AA);
-		true -> euclid(AA, AB)
-	end.
+gcd(A, B) when B >= 0, A >= B -> euclid(A, B);
+gcd(A, B) when B >= 0 -> gcd(B, A);
+gcd(A, B) -> gcd(A, abs(B)).
 
 -spec egcd(A :: integer(), B :: integer()) -> {integer(), integer(), integer()}.
 % @doc
@@ -28,7 +22,7 @@ egcd(A, B) -> egcd(A, B, A, 1, 0, B).
 -spec isqrt(N :: integer()) -> atom() | integer().
 % @doc
 % integer square root using Newton method. returns the largest integer R such
-% that R * R &lt; N + 1
+% that R * R < N + 1
 isqrt(N) when N < 0 -> undefined;
 isqrt(N) when N < 2 -> N;
 isqrt(N) -> isqrt(N, isqrt_candidate(N)).
@@ -36,7 +30,7 @@ isqrt(N) -> isqrt(N, isqrt_candidate(N)).
 -spec icubrt(N :: integer()) -> integer().
 % @doc
 % integer cube root using Newton method. returns the largest integer R such
-% that R * R * R &lt; N + 1
+% that R * R * R < N + 1
 icubrt(-1) -> -1;
 icubrt(N) when N > - 9, N < -1 -> -2;
 icubrt(N) when N > -2, N < 2 -> N;
@@ -45,9 +39,9 @@ icubrt(N) -> icubrt(N, icubrt_candidate(N)).
 
 -spec iroot(N :: integer(), P :: integer()) -> integer().
 % @doc
-% integer root using Newton method. assuming N &gt; -1 when P is even but no
+% integer root using Newton method. assuming N > -1 when P is even but no
 % test is done, caller has to ensure it. return the largest integer R such that
-% ipow(R, P) &lt; N + 1
+% ipow(R, P) < N + 1
 iroot(N, P) -> iroot(N, P, iroot_candidate(N, P)).
 
 -spec ipow(N :: number(), P :: integer()) -> integer() | float().
@@ -109,21 +103,17 @@ sqrt_m(V, P) ->
 euclid(A, 0) -> A;
 euclid(A, B) -> euclid(B, A rem B).
 
-egcd(A, B, D, U, _, 0) ->
-	case D >= 0 of
-		true -> {D, U, (D - A * U) div B};
-		false -> {-D, -U, (A * U - D) div B}
-	end;
+egcd(A, B, D, U, _, 0) when D >= 0 -> {D, U, (D - A * U) div B};
+egcd(A, B, D, U, _, 0) -> {-D, -U, (A * U - D) div B};
 egcd(A, B, D, U, V, R) ->
 	Q = D div R,
 	egcd(A, B, R, V, U - Q * V, D rem R).
 
-ipow(_, 0, R) -> R;
 ipow(N, P, R) when P band 1 =:= 1 -> ipow(N, P - 1, R * N);
+ipow(_, 0, R) -> R;
 ipow(N, P, R) -> ipow(N * N, P bsr 1, R).
 
-i2powm(<<0:8, P/binary>>, M, R) ->
-	i2powm(P, M, sqrm(R, M, 8));
+i2powm(<<0:8, P/binary>>, M, R) -> i2powm(P, M, sqrm(R, M, 8));
 i2powm(<<Y:8>>, M, R) ->
 	C = num_util:p2(Y),
 	F = (1 bsl (Y bsr C)) rem M,
