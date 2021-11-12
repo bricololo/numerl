@@ -8,9 +8,10 @@
 -spec gcd(A :: integer(), B :: integer()) -> integer().
 % @doc
 % greatest common divisor using euclid algorithm
-gcd(A, B) when B >= 0, A >= B -> euclid(A, B);
-gcd(A, B) when B >= 0 -> gcd(B, A);
-gcd(A, B) -> gcd(A, abs(B)).
+gcd(A, B) when A < 0 -> gcd(-A, B);
+gcd(A, B) when B < 0 -> gcd(A, -B);
+gcd(A, B) when A >= B -> euclid(A, B);
+gcd(A, B) -> euclid(B, A).
 
 -spec egcd(A :: integer(), B :: integer()) -> {integer(), integer(), integer()}.
 % @doc
@@ -31,7 +32,6 @@ isqrt(N) -> isqrt(N, isqrt_candidate(N)).
 % @doc
 % integer cube root using Newton method. returns the largest integer R such
 % that R * R * R < N + 1
-icubrt(-1) -> -1;
 icubrt(N) when N > - 9, N < -1 -> -2;
 icubrt(N) when N > -2, N < 2 -> N;
 icubrt(N) when N > 1, N < 8 -> 1;
@@ -70,7 +70,8 @@ ipowm(0, 0, _) -> undefined;
 ipowm(0, _, _) -> 0;
 ipowm(_, 0, _) -> 1;
 ipowm(1, _, _) -> 1;
-ipowm(2, P, M) when P > ?N64, M > ?N64 -> i2powm(binary:encode_unsigned(P), M, 1);
+ipowm(2, P, M) when P > ?N64, M > ?N64 ->
+	i2powm(binary:encode_unsigned(P), M, 1);
 ipowm(N, P, M) -> ipowm(N, P, M, 1).
 
 -spec jacobi(A :: integer(), M :: integer()) -> -1 | 0 | 1.
@@ -83,18 +84,7 @@ jacobi(A, M) -> jacobi(abs(A rem M), M, 1).
 
 % find X such that X * X = A (P) given that P is prime and jacobi(A, P) = 1 by
 % using Tonelli algorithm.
-sqrt_m(V, P) ->
-	A = V rem P,
-	case P band 7 of
-		1 -> sqrt_m_1(A, P);
-		5 ->
-			X = numerl:ipowm(A, P bsr 3 + 1, P),
-			case X * X rem P of
-				A -> X;
-				_ -> X * numerl:ipowm(2, P bsr 2, P) rem P
-			end;
-		_ -> numerl:ipowm(A, P bsr 2 + 1, P)
-	end.
+sqrt_m(V, P) -> sqrt_m(V rem P, P, P band 7).
 
 %%%
 %%% Internals
@@ -168,13 +158,21 @@ jacobi(A, M, T) ->
 	M2 = case {Ar band 3, M band 3} of {3, 3} -> -1; _ -> 1 end,
 	jacobi(M rem Ar, Ar, T * M1 * M2).
 
+sqrt_m(A, P, 1) -> sqrt_m_1(A, P);
+sqrt_m(A, P, 5) ->
+	X = numerl:ipowm(A, P bsr 3 + 1, P),
+	case X * X rem P of
+		A -> X;
+		_ -> X * numerl:ipowm(2, P bsr 2, P) rem P
+	end;
+sqrt_m(A, P, _) -> numerl:ipowm(A, P bsr 2 + 1, P).
+
 sqrt_m_1(A, P) ->
 	S = num_util:p2(P - 1),
 	T = P bsr S,
 	D = numerl:ipowm(non_square(2, P bsr 1, P), T, P),
 	M = m(1, S, 0, numerl:ipowm(A, T, P), D, P),
 	(numerl:ipowm(A, (T + 1) bsr 1, P) * numerl:ipowm(D, M bsr 1, P)) rem P.
-
 
 m(I, S, M, _, _, _) when I >= S -> M;
 m(I, S, M, A, D, P) ->

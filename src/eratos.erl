@@ -14,7 +14,7 @@
 -spec sieve(N :: integer()) -> [integer()].
 % @doc
 % compute the list of all primes up to N
-sieve(N) -> sieve(N, primes(N)).
+sieve(N) -> sieve(N, primes_list(N, N)).
 
 -spec sieve(N :: integer(), P :: [integer()] | tab()) -> [integer()] | tab().
 % @doc
@@ -22,12 +22,9 @@ sieve(N) -> sieve(N, primes(N)).
 % to the type of the second argument.
 sieve(N, Primes) ->
 	P_lim = numerl:isqrt(N),
-	P_list = case is_list(Primes) of true -> Primes; false -> primes(N) end,
+	P_list = primes_list(Primes, N),
 	W = wheel:init(tl(lists:reverse(P_list))),
-	case is_list(Primes) of
-		true -> ok;
-		_ -> ets:insert(Primes, [{P} || P <- P_list])
-	end,
+	init(Primes, P_list),
 	sieve(pq_heap:new(fun next/1), first(P_list), P_lim, N, Primes, W).
 
 -spec foldl(N :: pos_integer(), Fun :: fun((_, _) -> term()), Acc :: term()) -> term().
@@ -44,13 +41,17 @@ foldl(N, Fun, Acc) ->
 %%% internals
 %%%
 
-primes(N) when N =< 1_000 -> [7, 5, 3, 2];
-primes(N) when N =< 10_000 -> [11, 7, 5, 3, 2];
-%primes(N) when N =< 100_000 -> [13, 11, 7, 5, 3, 2];
-primes(N) when N =< 1_000_000 -> [13, 11, 7, 5, 3, 2];
-primes(N) when N =< 10_000_000 -> [17, 13, 11, 7, 5, 3, 2];
-primes(N) when N =< 100_000_000 -> [19, 17, 13, 11, 7, 5, 3, 2];
-primes(_) -> [7, 5, 3, 2]. % small wheel to limit swapping
+primes_list(List, _) when is_list(List) -> List;
+primes_list(_, N) when N =< 1_000 -> [7, 5, 3, 2];
+primes_list(_, N) when N =< 10_000 -> [11, 7, 5, 3, 2];
+%primes_list(_, N) when N =< 100_000 -> [13, 11, 7, 5, 3, 2];
+primes_list(_, N) when N =< 1_000_000 -> [13, 11, 7, 5, 3, 2];
+primes_list(_, N) when N =< 10_000_000 -> [17, 13, 11, 7, 5, 3, 2];
+primes_list(_, N) when N =< 100_000_000 -> [19, 17, 13, 11, 7, 5, 3, 2];
+primes_list(_, _) -> [7, 5, 3, 2]. % small wheel to limit swapping
+
+init(Primes, _) when is_list(Primes) -> ok;
+init(Primes, P_list) -> ets:insert(Primes, [{P} || P <- P_list]).
 
 first([23 | _]) -> 29;
 first([H | _]) when H < 31 -> H + 5 - (H rem 6 + 1) div 2.
