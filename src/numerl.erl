@@ -177,7 +177,7 @@ sqrt_m_1(A, P) ->
 	T = P bsr S,
 	D = ipowm(non_square(2, P bsr 1, P), T, P),
 	M = sqrt_m_m(1, S, 0, ipowm(A, T, P), D, P),
-	(ipowm(A, (T + 1) bsr 1, P) * ipowm(D, M bsr 1, P)) rem P.
+	ipowm(A, (T + 1) bsr 1, P) * ipowm(D, M bsr 1, P) rem P.
 
 non_square(Y, Lim, _) when Y > Lim -> fail;
 non_square(Y, Lim, P) -> non_square(Y, Lim, P, jacobi(Y, P)).
