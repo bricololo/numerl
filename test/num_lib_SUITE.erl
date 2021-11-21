@@ -120,9 +120,6 @@ is_square(_) ->
 	{true, _} = Isq(9 bsl 100),
 	false = Isq(17 bsl 100),
 
-	L = [X * X || X <- lists:seq(0, 1_000)],
-	L = [X || X <- lists:seq(0, 1_000_000), Isq(X) =/= false],
-
 	false = Isq(8), % ok mod 4 but an odd number of trailing 0
 	false = Isq(48), % ok mod 4, even number of trailing 0 but not a square
 	false = Isq(17), % ok mod 8 but not mod 225
@@ -153,8 +150,10 @@ is_cube(_) ->
 	{true, -20} = F(-8_000),
 
 	% coverage...
-	L = [X * X * X || X <- lists:seq(20, 200)],
-	L = [X || X <- lists:seq(8_000, 8_000_000), F(X) =/= false],
+	false = F(252 * 247 * 103), % would pass all the mod tests but is discarded
+								% because it is not the product of an odd number
+								% by a power of 8
+	false = F(252 * 247 * 103 * 2), % pass all the mod tests but is not a cube
 	ok.
 
 fib_def(0) -> 0;
