@@ -8,12 +8,11 @@
 
 all() -> [{group, exported}].
 
-%TODO: add some test for sqrt_m
 groups() ->
 	[
 		{exported,
 			[shuffle],
-			[gcd, egcd, isqrt, icubrt, iroot, ipow, ipowm, jacobi]
+			[gcd, egcd, isqrt, icubrt, iroot, ipow, ipowm, jacobi, sqrt_m]
 		},
 		{internal, [shuffle], []}
 	].
@@ -138,6 +137,24 @@ jacobi(_) ->
 
 	-1 = F(5, 47),
 	-1 = F(10, 47),
+
+	% TODO : find a case covering jacobi_ar(3, 3)
+	ok.
+
+sqrt_m(_) ->
+	F = fun(A, P) -> numerl:sqrt_m(A, P) end,
+
+	P1 = 37, % P1 rem 8 = 5
+	V1 = 34 * 34 rem P1,
+	34 = F(V1, P1), % 3 would have been an other solution as 34 = -3 mod 37
+
+	P2 = 41, % P2 rem 8 = 1
+	V2 = 34 * 34 rem P2,
+	34 = F(V2, P2), % 7 would have been an other solution as 34 = -7 mod 41
+
+	P3 = 43, % P3 rem 8 = 3
+	V3 = 34 * 34 rem P3,
+	9 = F(V3, P3), % 34 = -9 mod 43, all is fine
 
 	ok.
 
