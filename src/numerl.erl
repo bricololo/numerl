@@ -82,7 +82,7 @@ ipowm(N, P, M) -> ipowm(N, P, M, 1).
 % jacobi(A, M) = -1 <=> A is not a square mod M
 jacobi(A, M) -> jacobi(abs(A rem M), M, 1).
 
-% find X such that X * X = A (P) given that P is prime and jacobi(A, P) = 1 by
+% find X such that X * X = V (P) given that P is prime and jacobi(V, P) = 1 by
 % using Tonelli algorithm.
 sqrt_m(V, P) -> sqrt_m(V rem P, P, P band 7).
 
@@ -125,9 +125,11 @@ isqrt(N, A) -> isqrt(N, A, (A + N div A) div 2).
 
 isqrt_candidate(N) -> 1 bsl (num_util:log2_est(N) bsr 1).
 
-isqrt(N, A, B) when abs(A - B) =< 1 ->
-	case B * B of P when P > N -> B - 1; _ -> B end;
+isqrt(N, A, B) when abs(A - B) =< 1 -> root_adjust(B, B * B, N);
 isqrt(N, _, A) -> isqrt(N, A, (A + N div A) div 2).
+
+root_adjust(B, P, N) when P > N -> B - 1;
+root_adjust(B, _, _) -> B.
 
 icubrt(N, A) -> icubrt(N, A, (N div (A * A) + (A bsl 1)) div 3).
 
@@ -135,7 +137,7 @@ icubrt_candidate(N) -> 1 bsl (num_util:log2_est(N) div 3).
 
 icubrt(N, A, B) when abs(A - B) =< 1 ->
 	L = max(A, B),
-	case ipow(L, 3) of R when R > N -> L - 1; _ -> L end;
+	root_adjust(L, ipow(L, 3), N);
 icubrt(N, _, A) -> icubrt(N, A, (N div (A * A) + (A bsl 1)) div 3).
 
 iroot(N, P, A) ->
@@ -143,7 +145,7 @@ iroot(N, P, A) ->
 
 iroot(N, P, A, B) when abs(A - B) =< 1 ->
 	L = max(A, B),
-	case ipow(L, P) of R when R > N -> L - 1; _ -> L end;
+	root_adjust(L, ipow(L, P), N);
 iroot(N, P, _, A) ->
 	iroot(N, P, A, ((N div ipow(A, P - 1)) + (A * (P - 1))) div P).
 
@@ -153,34 +155,44 @@ jacobi(0, 1, T) -> T;
 jacobi(0, _, _) -> 0;
 jacobi(A, M, T) ->
 	P2 = num_util:p2(A),
-	M1 = case {P2 band 1, M band 7} of {1, 3} -> -1; {1, 5} -> -1; _ -> 1 end,
 	Ar = A bsr P2,
-	M2 = case {Ar band 3, M band 3} of {3, 3} -> -1; _ -> 1 end,
-	jacobi(M rem Ar, Ar, T * M1 * M2).
+	jacobi(M rem Ar, Ar,
+		T * jacobi_p2(P2 band 1, M band 7) * jacobi_ar(Ar band 3, M band 3)).
+
+jacobi_p2(1, 3) -> -1;
+jacobi_p2(1, 5) -> -1;
+jacobi_p2(_, _) -> 1.
+
+jacobi_ar(3, 3) -> -1;
+jacobi_ar(_, _) -> 1.
 
 sqrt_m(A, P, 1) -> sqrt_m_1(A, P);
 sqrt_m(A, P, 5) ->
-	X = numerl:ipowm(A, P bsr 3 + 1, P),
-	case X * X rem P of
-		A -> X;
-		_ -> X * numerl:ipowm(2, P bsr 2, P) rem P
-	end;
-sqrt_m(A, P, _) -> numerl:ipowm(A, P bsr 2 + 1, P).
+	X = ipowm(A, P bsr 3 + 1, P),
+	sqrt_m_5(X * X rem P, A, X, P);
+sqrt_m(A, P, _) -> ipowm(A, P bsr 2 + 1, P).
 
 sqrt_m_1(A, P) ->
 	S = num_util:p2(P - 1),
 	T = P bsr S,
-	D = numerl:ipowm(non_square(2, P bsr 1, P), T, P),
-	M = m(1, S, 0, numerl:ipowm(A, T, P), D, P),
-	(numerl:ipowm(A, (T + 1) bsr 1, P) * numerl:ipowm(D, M bsr 1, P)) rem P.
-
-m(I, S, M, _, _, _) when I >= S -> M;
-m(I, S, M, A, D, P) ->
-	R = (A * numerl:ipowm(D, M, P)) rem P,
-	R1 = numerl:ipowm(R, 1 bsl (S - I - 1), P),
-	N = case R1 of V when V =:= P - 1 -> M + numerl:ipow(2, I); _ -> M end,
-	m(I + 1, S, N, A, D, P).
+	D = ipowm(non_square(2, P bsr 1, P), T, P),
+	M = sqrt_m_m(1, S, 0, ipowm(A, T, P), D, P),
+	(ipowm(A, (T + 1) bsr 1, P) * ipowm(D, M bsr 1, P)) rem P.
 
 non_square(Y, Lim, _) when Y > Lim -> fail;
-non_square(Y, Lim, P) ->
-	case numerl:jacobi(Y, P) of -1 -> Y; _ -> non_square(Y + 1, Lim, P) end.
+non_square(Y, Lim, P) -> non_square(Y, Lim, P, jacobi(Y, P)).
+
+non_square(Y, _, _, -1) -> Y;
+non_square(Y, Lim, P, _) -> non_square(Y + 1, Lim, P).
+
+sqrt_m_5(A, A, X, _) -> X;
+sqrt_m_5(_, _, X, P) -> X * ipowm(2, P bsr 2, P) rem P.
+
+sqrt_m_m(I, S, M, _, _, _) when I >= S -> M;
+sqrt_m_m(I, S, M, A, D, P) ->
+	R = (A * ipowm(D, M, P)) rem P,
+	N = sqrt_m_final(ipowm(R, 1 bsl (S - I -1), P), P - 1, M, I),
+	sqrt_m_m(I + 1, S, N, A, D, P).
+
+sqrt_m_final(V, V, M, I) -> M + ipow(2, I);
+sqrt_m_final(_, _, M, _) -> M.
