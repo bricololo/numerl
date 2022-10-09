@@ -7,11 +7,12 @@
 %	init/2 to initialise the lazy generator of rejected numbers, the lazy
 %		generator of candidates and the accumulator that will store the result;
 %	candidate/1 to get the current value of the candidates generator;
-%   next_candidate/1 to get get the next state of the candidates generator;
+%   next_candidate/1 to get the next state of the candidates generator;
 %	bad/1 to get the current value of the rejected generator;
 %	next_bad/2 to get the next state of the rejected generator;
 %	new_acc/2 to add an element to the accumulator.
 %	result/1 to extract the final result from the sieve;
+%
 % moreover, in order to be able to start the sieving from an arbitrary point the
 % two following callback functions are also needed:
 %	start_from/2 to initialize candidates to a suitable value
@@ -33,8 +34,8 @@
 
 % all prime numbers up to Lim
 up_to(prime = Module, Lim) ->
-	{Comp, Start, Acc} = Module:init(Lim, [7, 5, 3, 2]),
-	sieve(Module, Comp, Start, Lim, Acc);
+	{Composites, Start, Acc} = Module:init(Lim, [7, 5, 3, 2]),
+	sieve(Module, Composites, Start, Lim, Acc);
 % all squarefree numbers up to Lim
 up_to(squarefree = Module, Lim) ->
 	{Bad, Start, Acc} = Module:init_pq(Lim),
@@ -45,8 +46,8 @@ from_to(prime, To, From) when From < To -> from_to(prime, From, To);
 from_to(prime = Module, From, To) ->
 	{Temp, Start, Acc} = Module:init(To, [7, 5, 3, 2]),
 	Start_from = Module:start_from(Start, From),
-	Comp = fast_bump(Module, Temp, element(1, Start_from)),
-	sieve(Module, Comp, Start_from, To,
+	Composites = fast_bump(Module, Temp, element(1, Start_from)),
+	sieve(Module, Composites, Start_from, To,
 		lists:takewhile(fun(X) -> X >= From end, Acc)).
 
 % all B-smooth numbers up to Lim
@@ -112,19 +113,21 @@ stream(prime = Module) ->
 
 sieve(Module, Bad, V, Lim, Acc) ->
 	Candidate = Module:candidate(V),
-	case Candidate > Lim of
-		false ->
-			N_Cand = Module:next_candidate(V),
-			case Module:bad(Bad) of
-				Large when Large > Candidate ->
-					N_Acc = Module:new_acc(Acc, Candidate),
-					sieve(Module, Bad, N_Cand, Lim, N_Acc);
-				Candidate ->
-					sieve(Module, Module:next_bad(Bad, Candidate), N_Cand, Lim, Acc);
-				_ -> sieve(Module, Module:next_bad(Bad, Candidate - 1), V, Lim, Acc)
-			end;
-		_ -> Module:result(Acc)
+	candidate(Module, Bad, V, Lim, Candidate, Acc).
+
+stream(prime = Module, Bad, V) ->
+	Candidate = Module:candidate(V),
+	N_Cand = Module:next_candidate(V),
+	case Module:bad(Bad) of
+		Candidate -> stream(Module, Module:next_bad(Bad, Candidate), N_Cand);
+		_ -> {Candidate, Module, Module:update_pq(Bad, V), N_Cand}
 	end.
+
+
+%%
+%% Implementation
+%%
+
 
 fast_bump(Module, {_, Heap} = Bad, From) ->
 	case Module:bad(Bad) of
@@ -135,10 +138,17 @@ fast_bump(Module, {_, Heap} = Bad, From) ->
 			fast_bump(Module, N_bad, From)
 	end.
 
-stream(prime = Module, Bad, V) ->
-	Candidate = Module:candidate(V),
+candidate(Module, Bad, V, Lim, Cand, Acc) when Cand =< Lim ->
 	N_Cand = Module:next_candidate(V),
-	case Module:bad(Bad) of
-		Candidate -> stream(Module, Module:next_bad(Bad, Candidate), N_Cand);
-		_ -> {Candidate, Module, Module:update_pq(Bad, V), N_Cand}
-	end.
+	{N_Bad, N_Candidate, N_Acc} =
+		next_step_vals(Module, Bad, V, Cand, N_Cand, Module:bad(Bad), Acc),
+	sieve(Module, N_Bad, N_Candidate,  Lim, N_Acc);
+candidate(Module, _, _, _, _, Acc) -> Module:result(Acc).
+
+next_step_vals(Module, Bad, _, Cand, N_Cand, Bad_Val, Acc) when Bad_Val > Cand ->
+	N_Acc = Module:new_acc(Acc, Cand),
+	{Bad, N_Cand, N_Acc};
+next_step_vals(Module, Bad, _, Cand, N_Cand, Bad_Val, Acc) when Bad_Val =:= Cand ->
+	{Module:next_bad(Bad, Cand), N_Cand, Acc};
+next_step_vals(Module, Bad, V, Cand, _, _, Acc) ->
+	{Module:next_bad(Bad, Cand - 1), V, Acc}.

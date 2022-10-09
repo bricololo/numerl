@@ -42,7 +42,22 @@ icubrt(N) -> icubrt(N, icubrt_candidate(N)).
 % integer root using Newton method. assuming N > -1 when P is even but no
 % test is done, caller has to ensure it. return the largest integer R such that
 % ipow(R, P) < N + 1
-iroot(N, P) -> iroot(N, P, iroot_candidate(N, P)).
+iroot(0, _) -> 0;
+iroot(N, P) ->
+	R = iroot(N, P, iroot_candidate(N, P)),
+	case abs(R) of
+		AR when AR > P bsl 1 -> R; % |R| is larger than 2P
+		_ when R >= P -> off_by_1(N, R, fun(X) -> ipow(X, P) end); % P < R < 2P
+		AR when AR < P ->
+			Fun = fun(X) -> ipow(X, P) - N end,
+			case {R > 0, Fun(R) > 0} of
+				{true, false} -> R;
+				{false, true} -> R;
+				{true, true} -> dichotomy(Fun, 0, R);
+				{false, false} -> dichotomy(Fun, R, 0)
+			end;
+		_ -> R % -2P < R < -P
+	end.
 
 -spec ipow(N :: number(), P :: integer()) -> integer() | float().
 % @doc
@@ -131,9 +146,9 @@ isqrt(N, _, A) -> isqrt(N, A, (A + N div A) div 2).
 root_adjust(B, P, N) when P > N -> B - 1;
 root_adjust(B, _, _) -> B.
 
-icubrt(N, A) -> icubrt(N, A, (N div (A * A) + (A bsl 1)) div 3).
-
 icubrt_candidate(N) -> 1 bsl (num_util:log2_est(N) div 3).
+
+icubrt(N, A) -> icubrt(N, A, (N div (A * A) + (A bsl 1)) div 3).
 
 icubrt(N, A, B) when abs(A - B) =< 1 ->
 	L = max(A, B),
@@ -149,7 +164,14 @@ iroot(N, P, A, B) when abs(A - B) =< 1 ->
 iroot(N, P, _, A) ->
 	iroot(N, P, A, ((N div ipow(A, P - 1)) + (A * (P - 1))) div P).
 
-iroot_candidate(N, P) -> 1 bsl (num_util:log2_est(N) div P).
+iroot_candidate(N, P) ->
+	% 1 bsl (num_util:log2_est(N) div P).
+	Log = num_util:log2_est(abs(N)),
+	D = Log div P,
+	R = Log - D * P,
+	Adjust = case R >= (P bsr 1) of true -> 1; _ -> 0 end,
+	Val = 1 bsl (D + Adjust),
+	case N > 0 of true -> Val; _ -> -Val end.
 
 jacobi(0, 1, T) -> T;
 jacobi(0, _, _) -> 0;
@@ -196,3 +218,15 @@ sqrt_m_m(I, S, M, A, D, P) ->
 
 sqrt_m_final(V, V, M, I) -> M + ipow(2, I);
 sqrt_m_final(_, _, M, _) -> M.
+
+dichotomy(_, R, R) -> R;
+dichotomy(_, Neg, Pos) when abs(Pos - Neg) =:= 1 -> Neg;
+dichotomy(Fun, Neg, Pos) ->
+	Mid = (Neg + Pos) div 2,
+	case Fun(Mid) of
+		Small when Small < 0 -> dichotomy(Fun, Mid, Pos);
+		Large when Large > 0 -> dichotomy(Fun, Neg, Mid);
+		0 -> Mid
+	end.
+
+off_by_1(N, R, Fun) -> case Fun(R) =< N of true -> R; false -> R - 1 end.

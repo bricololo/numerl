@@ -23,11 +23,9 @@ bump({Next, Size, {Head, Left, Right}}) ->
 
 % an element might be present several times So we replace Head by its next value
 % until the smallest element in Heap is larger than V.
-bumpt({Head, _, _} = Heap, V, Next) ->
-	case element(1, Head) of
-		Vp when Vp =< V -> bumpt(fix(setelement(1, Heap, Next(Head))), V, Next);
-		_ -> Heap
-	end.
+bumpt({Head, _, _} = Heap, V, Next) when element(1, Head) =< V ->
+		bumpt(fix(setelement(1, Heap, Next(Head))), V, Next);
+bumpt(Heap, _, _) -> Heap.
 
 %%
 %% implementation
@@ -45,15 +43,9 @@ add({_,Left,_} = H, Elem, [0|Path]) -> setelement(2, H, add(Left,Elem,Path));
 add({_,_,Right} = H, Elem, [1|Path]) -> setelement(3, H, add(Right,Elem,Path)).
 
 % adjust heap by swapping elements down until it's a heap again
-fix({Head, {Left, empty, empty}, empty} = Heap) ->
-	case Head < Left of
-		true -> Heap;
-		_ -> {Left, {Head, empty, empty}, empty}
-	end;
-fix({Head, {Hl, Ll, Rl} = Left, {Hr, Lr, Rr} = Right} = Heap) ->
-	case {Head, Hl, Hr} of
-		{V, Vl, Vr} when V < Vl, V < Vr -> Heap;
-		{_, Vl, Vr} when Vl < Vr -> {Hl, fix({Head, Ll, Rl}), Right};
-		_ -> {Hr, Left, fix({Head, Lr, Rr})}
-	end;
-fix({_, empty, empty} = Tree) -> Tree.
+fix({Head, {Left, empty, empty}, empty} = Heap) when Head < Left -> Heap;
+fix({Head, {Left, empty, empty}, empty}) -> {Left, {Head, empty, empty}, empty};
+fix({Head, {Hl, _, _}, {Hr, _, _}} = Heap) when Head < Hl, Head < Hr -> Heap;
+fix({Head, {Hl, Ll, Rl}, {Hr, _, _} = Right}) when Hl < Hr -> {Hl, fix({Head, Ll, Rl}), Right};
+fix({Head, Left, {Hr, Lr, Rr}}) -> {Hr, Left, fix({Head, Lr, Rr})};
+fix({_, empty, empty} = Heap) -> Heap.

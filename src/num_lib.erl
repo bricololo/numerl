@@ -69,25 +69,16 @@ is_square(N) -> is_square(N, N band 3).
 % @doc
 % a fast test. Try avoiding computing the cube root if not needed. Returns false
 % if N is not the cube of an integer and {true, icubrt(N)} when N is a cube.
-is_cube(N) when N < 0 ->
-	case is_cube(-N) of
-		false -> false;
-		{_, C} -> {true, -C}
-	end;
+is_cube(N) when N < 0 -> is_neg_cube(is_cube(-N));
 is_cube(N) when N < 2 -> {true, N};
 is_cube(N) when N < 8_000 ->
-	case lists:member(
+	is_small_cube(
+		lists:member(
 			N,
 			[8, 27, 64, 125, 216, 343, 512, 729, 1_000, 1_331, 1_728, 2_197,
-				2_744, 3_375, 4_096, 4_913, 5_832, 6_859]) of
-		false -> false;
-		true -> {true, numerl:icubrt(N)}
-	end;
-is_cube(N) ->
-	case N band 1 of
-		0 -> is_cube(N, num_util:p2(N));
-		1 -> cube_mod_test(N)
-	end.
+				2_744, 3_375, 4_096, 4_913, 5_832, 6_859]),
+			N);
+is_cube(N) -> is_cube_parity(N, N band 7).
 
 %
 % Implementation
@@ -127,10 +118,10 @@ is_square(_, _) -> false.
 is_even_square(_, P2) when P2 band 1 =:= 1 -> false;
 is_even_square(N, P2) ->
 	N_odd = N bsr P2,
-	case is_odd_square(N_odd, N_odd band 7) of
-		false -> false;
-		{_, Root} -> {true, Root bsl (P2 bsr 1)}
-	end.
+	is_even_square_(is_odd_square(N_odd, N_odd band 7), P2).
+
+is_even_square_(false, _) -> false;
+is_even_square_({true, Root}, P2) -> {true, Root bsl (P2 bsr 1)}.
 
 is_odd_square(N, 1) -> square_mod_test(N);
 is_odd_square(_, _) -> false.
@@ -138,20 +129,29 @@ is_odd_square(_, _) -> false.
 square_mod_test(N) ->
 	% 3 051 123 075 = 225 * 247 * 253 * 217
 	T = N rem 3_051_123_075,
-	case
+	is_square_(
 		square_225_test(T) andalso % 3 * 3 * 5 * 5
 		square_247_test(T) andalso % 13 * 19
 		square_253_test(T) andalso % 11 * 23
-		square_217_test(T) of      % 7 * 31
-		false -> false;
-		true -> is_square_(N)
-	end.
+		square_217_test(T),        % 7 * 31
+		N).
 
 square_225_test(T) ->
-	lists:member(T rem 225,
-		[0, 1, 4, 9, 16, 19, 25, 31, 34, 36, 46, 49, 54, 61, 64, 76, 79, 81, 91,
-			94, 99, 100, 106, 109, 121, 124, 126, 136, 139, 144, 151, 154, 166,
-			169, 171, 175, 181, 184, 189, 196, 199, 211, 214, 216]).
+%	lists:member(T rem 225,
+%		[0, 1, 4, 9, 16, 19, 25, 31, 34, 36, 46, 49, 54, 61, 64, 76, 79, 81, 91,
+%			94, 99, 100, 106, 109, 121, 124, 126, 136, 139, 144, 151, 154, 166,
+%			169, 171, 175, 181, 184, 189, 196, 199, 211, 214, 216]).
+%
+%		        1 0100 1000 0000 0000 1001 0000 % 196, 199, 211, 214, 216
+%		0010 0001 0010 0000 1000 1010 0100 0000 % 166, 169, 171, 175, 181, 184, 189
+%		0000 0100 1000 0001 0000 1001 0000 0000 % 136, 139, 144, 151, 154
+%		0101 0010 0000 0000 0010 0100 0001 1000 % 99, 100, 106, 109, 121, 124, 126
+%		0100 1000 0000 0010 1001 0000 0000 0001 % 64, 76, 79, 81, 91, 94
+%		0010 0000 0100 0010 0100 0000 0001 0100 % 34, 36, 46, 49, 54, 61
+%		1000 0010 0000 1001 0000 0010 0001 0011 % 0, 1, 4, 9, 16, 19, 25, 31
+		(1 bsl (T rem 225)) band
+			16#1480090_21208A40_04810900_52002418_48029001_20424014_82090213
+			=/= 0.
 
 square_247_test(T) ->
 	lists:member(T rem 247,
@@ -177,25 +177,35 @@ square_217_test(T) ->
 			162, 163, 165, 169, 175, 183, 186, 190, 191, 193, 196, 200, 204,
 			205, 211, 214]).
 
-is_square_(N) ->
+is_square_(false, _) -> false;
+is_square_(true, N) ->
 	S = numerl:isqrt(N),
-	case S * S of
-		N -> {true, S};
-		_ -> false
-	end.
+	is_root(N, S, S * S).
 
-is_cube(N, P2) -> case P2 rem 3 of 0 -> cube_mod_test(N); _ -> false end.
+is_root(N, Root, N) -> {true, Root};
+is_root(_, _, _) -> false.
+
+is_neg_cube(false) -> false;
+is_neg_cube({_, Root}) -> {true, -Root}.
+
+is_small_cube(false, _) -> false;
+is_small_cube(true, N) -> {true, numerl:icubrt(N)}.
+
+is_cube_parity(N, Odd) when Odd band 1 =:= 1 -> cube_mod_test(N);
+is_cube_parity(N, 0) -> is_cube_even(N, num_util:p2(N));
+is_cube_parity(_, _) -> false.
+
+is_cube_even(N, P2) when P2 rem 3 =:= 0 -> cube_mod_test(N);
+is_cube_even(_, _) -> false.
 
 cube_mod_test(N) ->
 	% 6 411 132 = 252 * 247 * 103
-	% 252 = 2 * 2 * 3 * 3 * 7
-	% 247 = 13 * 19
-	% 103 is prime
 	T = N rem 6_411_132,
-	case cube_252_test(T) andalso cube_247_test(T) andalso cube_103_test(T) of
-		false -> false;
-		true -> is_cube_(N)
-	end.
+	is_cube_(
+		cube_252_test(T) andalso % 2 * 2 * 3 * 3 * 7
+		cube_247_test(T) andalso % 13 * 19
+		cube_103_test(T),        % 103 is prime
+		N).
 
 cube_252_test(T) ->
 	test(T, 252, [0, 1, 8, 27, 28, 35, 36, 55, 63, 64, 71, 91, 99, 125]).
@@ -209,12 +219,10 @@ cube_103_test(T) ->
 	test(T, 103,
 		[0, 1, 3, 8, 9, 10, 13, 14, 22, 23, 24, 27, 30, 31, 34, 37, 39, 42]).
 
-is_cube_(N) ->
+is_cube_(false, _) -> false;
+is_cube_(true, N) ->
 	C = numerl:icubrt(N),
-	case C * C * C of
-		N -> {true, C};
-		_ -> false
-	end.
+	is_root(N, C, C * C * C).
 
 % when M is suitable we just need to test up to M/2.
 % when testing for square we need M - 1 to be an even square

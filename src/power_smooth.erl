@@ -24,15 +24,15 @@ new_acc(Acc, V) -> [V | Acc].
 result(L) when is_list(L) -> lists:reverse(L).
 
 fast_next({V, Inc} = Head, From) when V < From ->
-	case From - V of
-		Small when Small < Inc -> next(Head);
-		Large -> {V + Inc * (Large div Inc), Inc}
-	end;
+	fast_next(From - V, Inc, V, Head);
 fast_next(E, _) -> E.
 
 %
 % internals
 %
+
+fast_next(Small, Inc, _, Head) when Small < Inc -> next(Head);
+fast_next(Large, Inc, V, _) -> {V + Inc * (Large div Inc), Inc}.
 
 next({V, Inc}) -> {V + Inc, Inc}.
 
@@ -53,18 +53,17 @@ filters(Primes, B) -> filter1(Primes, B, numerl:isqrt(B), []).
 filter1([H | T], B, Lim, Acc) when H > Lim -> filter1(T, B, Lim, [H * H | Acc]);
 filter1(P, B, _, Acc) -> filter2(P, B, numerl:icubrt(B), Acc).
 
-filter2([H|T], B, Lim, Acc) when H > Lim -> filter2(T, B, Lim, [H*H*H | Acc]);
+filter2([H|T], B, Lim, Acc) when H > Lim ->
+	filter2(T, B, Lim, [H * H * H | Acc]);
 filter2(P, B, _, Acc) -> filter3(P, B, Acc).
 
 filter3([H | T], B, Acc) -> filter3(T, B, [pump(H, B, H * H * H) | Acc]);
 filter3(_, _, Acc) -> lists:sort(Acc).
 
-pump(P, B, V) ->
-	case V * V of
-		Small when Small < B -> pump(P, B, Small);
-		_ -> 
-			case P * V of
-				Medium when Medium < B -> pump(P, B, Medium);
-				Large -> Large
-			end
-	end.
+pump(P, B, V) -> pump(P, B, V, V * V).
+
+pump(P, B, _, V2) when V2 < B -> pump(P, B, V2);
+pump(P, B, V, _) -> pump_(P, B, P * V).
+
+pump_(P, B, T) when T < B -> pump(P, B, T);
+pump_(_, _, T) -> T.

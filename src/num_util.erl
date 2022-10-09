@@ -41,11 +41,10 @@ log2_bin_s(N) when N > 3 -> (N band 8) bsr 3 + 3;
 log2_bin_s(0) -> 0;
 log2_bin_s(N) -> (N band 2) bsr 1 + 1.
 
-p2(N, Acc) ->
-	case N band 16#ffff_ffff_ffff_ffff of
-		0 -> p2(N bsr 64, Acc + 64);
-		V -> Acc + p2_64(V)
-	end.
+p2(N, Acc) -> p2(N, Acc, N band 16#ffff_ffff_ffff_ffff).
+
+p2(N, Acc, 0) -> p2(N bsr 64, Acc + 64);
+p2(_, Acc, V) -> Acc + p2_64(V).
 
 p2_64(N) ->
 	lists:nth(

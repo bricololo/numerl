@@ -4,12 +4,11 @@
 
 
 init([3, 5, 7 | Divs]) ->
-	Length = lists:foldl(fun(E, L) -> E * L end, 210, Divs),
+	Len = lists:foldl(fun(E, L) -> E * L end, 210, Divs),
 	Notches =
 		lists:merge(
-			[filter(P, Length, Divs) ||
-				P <- [11, 13, 17, 19, 23, 29, 31, 37]]),
-	{delta(Notches ++ [hd(Notches) + Length]), []};
+			[filter(P, Len, Divs) || P <- [11, 13, 17, 19, 23, 29, 31, 37]]),
+	{delta(Notches ++ [hd(Notches) + Len]), []};
 init(Divs) ->
 	Count = lists:foldl(fun(E, P) -> (E - 1) * P end, 1, Divs),
 	Seed = seed(Divs, Count + 1),
@@ -29,10 +28,11 @@ seed(Divs, Count) ->
 
 seed(_, _, Count, Count, Acc) -> lists:reverse(Acc);
 seed(Divs, C, Length, Count, Acc) ->
-	case check(Divs, C) of
-		C -> seed(Divs, C + 2, Length + 1, Count, [C | Acc]);
-		_ -> seed(Divs, C + 2, Length, Count, Acc)
-	end.
+	{D_Length, N_Acc} = seed(C, check(Divs, C), Acc),
+	seed(Divs, C + 2, Length + D_Length, Count, N_Acc).
+
+seed(C, C, Acc) -> {1, [C | Acc]};
+seed(_, _, Acc) -> {0, Acc}.
 
 
 check([H | _], C) when (C rem H) =:= 0 -> 0;

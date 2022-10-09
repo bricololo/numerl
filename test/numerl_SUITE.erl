@@ -12,7 +12,7 @@ groups() ->
 	[
 		{exported,
 			[shuffle],
-			[gcd, egcd, isqrt, icubrt, iroot, ipow, ipowm, jacobi, sqrt_m]
+			[gcd,egcd,isqrt,icubrt,iroot,iroot_large_P,ipow,ipowm,jacobi,sqrt_m]
 		},
 		{internal, [shuffle], []}
 	].
@@ -93,6 +93,21 @@ iroot(_) ->
 	N = rand:uniform(?Large),
 	R = Iroot(N, P),
 	true = root_check(N, R, P),
+	ok.
+
+iroot_large_P(_) ->
+	Iroot = fun(N, P) -> numerl:iroot(N, P) end,
+	N = numerl:ipow(10, 18),
+	N3 = N * N * N,
+
+	Result = [31622,3981,1000,372,177,100,63,43,31,24,19,15,13,11,10,8,7],
+	Result = lists:map(fun(X) -> Iroot(N, X) end, lists:seq(4, 20)),
+
+	Result2 = [55, 48, 43, 38, 34, 31, 28, 26, 24],
+	Result2 = lists:map(fun(X) -> Iroot(N3, X) end, lists:seq(31, 39)),
+
+	Result3 = [-56, -44, -35, -29, -25],
+	Result3 = lists:map(fun(X) -> Iroot(-N3, X) end, lists:seq(31, 39, 2)),
 	ok.
 
 ipow(_) ->

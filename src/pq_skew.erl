@@ -26,19 +26,15 @@ bumpt(Tree, V, Next) -> bumpt(Tree, V, empty, Next).
 
 leaf(Elem) -> {Elem, empty, empty}.
 
-merge({Hl, Ll, Rl} = Left, {Hr, Lr, Rr} = Right) ->
-	case Hl =< Hr of
-		true -> {Hl, Rl, merge(Ll, Right)}; % swapping Left and Right
-		false -> {Hr, Rr, merge(Lr, Left)}  % help balancing the tree
-	end;
+% swapping Left and Right help balancing the tree
+merge({Hl, Ll, Rl}, {Hr, _, _} = Right) when Hl =< Hr ->
+	{Hl, Rl, merge(Ll, Right)};
+merge({_, _, _} = Left, {Hr, Lr, Rr}) -> {Hr, Rr, merge(Lr, Left)};
 merge(Tree, empty) -> Tree;
 merge(empty, Tree) -> Tree.
 
-% an element might be present several times So we replace Head by its next value
+% an element might be present several times. So we replace Head by its next value
 % until the smallest element in Tree is larger than V.
-bumpt({Head, Left, Right} = Tree, V, Add, Next) ->
-	case element(1, Head) of
-		Vp when Vp =< V ->
-			bumpt(merge(Left, Right), V, merge(Add, leaf(Next(Head))), Next);
-		_ -> merge(Tree, Add)
-	end.
+bumpt({Head, Left, Right}, V, Add, Next) when element(1, Head) =< V ->
+	bumpt(merge(Left, Right), V, merge(Add, leaf(Next(Head))), Next);
+bumpt(Tree, _, Add, _) -> merge(Tree, Add).

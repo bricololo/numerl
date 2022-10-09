@@ -127,6 +127,10 @@ is_square(_) ->
 	false = Isq(481), % ok mod 8, 225 and 247 but not mod 253
 	false = Isq(1881), % ok mod 8, 225, 247 and 253 but not mod 217
 	false = Isq(28809), % ok mod 8, 225, 247, 253 and 217 but not a square
+
+	Result = [I || I <- lists:seq(0, 1_000_000), false =/= Isq(I)],
+	Result = [I * I || I <- lists:seq(0, 1_000)],
+
 	ok.
 
 is_cube(_) ->
