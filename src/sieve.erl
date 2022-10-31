@@ -38,7 +38,7 @@ up_to(prime = Module, Lim) ->
 	sieve(Module, Composites, Start, Lim, Acc);
 % all squarefree numbers up to Lim
 up_to(squarefree = Module, Lim) ->
-	{Bad, Start, Acc} = Module:init_pq(Lim),
+	{Bad, Start, Acc} = Module:init(Lim),
 	sieve(Module, Bad, Start, Lim, Acc).
 
 % all prime numbers between From and To
@@ -111,10 +111,6 @@ stream(prime = Module) ->
 	Wheel = wheel:init([3, 5, 7]),
 	stream(Module, Bad, {11, Wheel}).
 
-sieve(Module, Bad, V, Lim, Acc) ->
-	Candidate = Module:candidate(V),
-	candidate(Module, Bad, V, Lim, Candidate, Acc).
-
 stream(prime = Module, Bad, V) ->
 	Candidate = Module:candidate(V),
 	N_Cand = Module:next_candidate(V),
@@ -123,11 +119,13 @@ stream(prime = Module, Bad, V) ->
 		_ -> {Candidate, Module, Module:update_pq(Bad, V), N_Cand}
 	end.
 
-
 %%
 %% Implementation
 %%
 
+sieve(Module, Bad, V, Lim, Acc) ->
+	Candidate = Module:candidate(V),
+	candidate(Module, Bad, V, Lim, Candidate, Acc).
 
 fast_bump(Module, {_, Heap} = Bad, From) ->
 	case Module:bad(Bad) of
