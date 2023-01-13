@@ -9,7 +9,7 @@ init(Lim) ->
 
 init(From, To) ->
 	Primes = sieve:up_to(prime, numerl:isqrt(To)),
-	init(pq_skew:new(fun cur/1, fun next/1), Primes, From).
+	init(pq_skew:new(fun next/1), Primes, From).
 
 candidate(V) -> V.
 
@@ -20,14 +20,11 @@ next_candidate(N) -> N + 1.
 new_acc(Acc, V) when is_list(Acc) -> [V | Acc].
 
 bad(Bad) -> pq_skew:val(Bad).
-
 next_bad(Bad, Value) -> pq_skew:bump(Bad, Value).
 
 %
 % internals
 %
-
-cur({V, _}) -> V.
 
 next({V, Inc}) -> {V + Inc, Inc}.
 
