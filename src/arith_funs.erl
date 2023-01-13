@@ -1,6 +1,6 @@
 -module(arith_funs).
 
--export([phi/1, d/1, sigma/1, moebius/1, omega/1]).
+-export([phi/1, tau/1, sigma/1, mu/1, omega/1]).
 
 % All these functions are multiplicative or additive, so they are easy to
 % compute if the full factorization of N is known. The full factorization of N
@@ -16,7 +16,7 @@ phi(L) when is_list(L) ->
 	mult(L, fun({P, E}) -> numerl:ipow(P, E - 1) * (P - 1) end).
 
 % number of positive divisors
-d(L) when is_list(L) ->
+tau(L) when is_list(L) ->
 	mult(L, fun({_, E}) -> 1 + E end).
 
 % sum of positive divisors
@@ -25,7 +25,7 @@ sigma(L) when is_list(L) ->
 
 % mu(N) is 0 if N is a muttiple of a square, and otherwise 1 if N has an even
 % number of prime factors and -1 if N has an odd number of primes factors.
-moebius(L) when is_list(L) ->
+mu(L) when is_list(L) ->
 	% mult(L, fun({_, 1}) -> -1; (_) -> 0 end). would be correct but slower
 	moebius(L, 1).
 
