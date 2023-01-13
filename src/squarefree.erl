@@ -29,4 +29,4 @@ next_bad(Bad, Value) -> pq_skew:bump(Bad, Value).
 next({V, Inc}) -> {V + Inc, Inc}.
 
 init(Bad, [H | T], B) -> init(pq_skew:add(Bad, {H * H, H * H}), T, B);
-init(Bad, [], B) -> {Bad, B, []}.
+init(Bad, [], B) -> {Bad, B, [1]}.
