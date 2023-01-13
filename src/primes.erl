@@ -29,7 +29,7 @@ fibonacci_test(N) -> fibonacci(num_lib:fibm(N - numerl:jacobi(N, 5), N)).
 lucas_test(N) -> lucas_test(N, 1, 3).
 lucas_test(N, A, B) ->
 	D = A * A - 4 * B,
-	case num_lib:is_square(D) of
+	case is_power:square(D) of
 		{true, _} -> {wrong_choice_of_parameters, A, B};
 		false ->
 			case numerl:gcd(N, 2 * B * D) of
