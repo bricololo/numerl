@@ -33,7 +33,7 @@ phi(_) ->
 	Result3 = [Fun(E) || E <- Input3].
 
 d(_) ->
-	Fun = fun(List) -> arith_funs:d(List) end,
+	Fun = fun(List) -> arith_funs:tau(List) end,
 	Primes =  [2, 3, 5, 23, 67, 65537],
 
 	% testing prime numbers
@@ -76,7 +76,7 @@ sigma(_) ->
 	Result3 = [Fun(E) || E <- Input3].
 
 moebius(_) ->
-	Fun = fun(List) -> arith_funs:moebius(List) end,
+	Fun = fun(List) -> arith_funs:mu(List) end,
 	Primes =  [2, 3, 5, 23, 67, 65537],
 
 	% testing prime numbers

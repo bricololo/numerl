@@ -106,7 +106,7 @@ fact(_) ->
 	ok.
 
 is_square(_) ->
-	Isq = fun(N) -> num_lib:is_square(N) end,
+	Isq = fun(N) -> is_power:square(N) end,
 
 	false = Isq(-5),
 	{true, 0} = Isq(0),
@@ -134,7 +134,7 @@ is_square(_) ->
 	ok.
 
 is_cube(_) ->
-	F = fun(N) -> num_lib:is_cube(N) end,
+	F = fun(N) -> is_power:cube(N) end,
 
 	% edge cases
 	{true, 0} = F(0),

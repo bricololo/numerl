@@ -15,7 +15,7 @@ groups() ->
 				fermat_test,
 				strong_test,
 				fibonacci_test,
-				%lucas_test, % primes:lucas test/4 is broken
+				lucas_test, % primes:lucas_test/4 is broken
 				no_small_div_test%,
 				%rabin_miller_test
 			]
@@ -86,9 +86,9 @@ lucas_test(_) ->
 	F3 = fun(N, A, B) -> primes:lucas_test(N, A, B) end,
 
 	% primes are indeed passing the test
-	true = F(1009),
 	true = F3(1009, 1, 3),
 	{wrong_choice_of_parameters, 5, 4} = F3(1009, 5, 4),
+	{wrong_choice_of_parameters, 2, 1} = F3(1009, 2, 1),
 
 	false = F(341),
 	false = F(1 bsl 32 + 1),
