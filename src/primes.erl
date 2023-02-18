@@ -20,8 +20,7 @@ fermat_test(N, B) -> witness_num(numerl:ipowm(B, N - 1, N), B).
 
 strong_test(N) -> strong_test(N, 2).
 strong_test(N, B) ->
-	S = num_util:p2(N - 1),
-	T = N bsr S,
+	{S, T} = split_even(N - 1),
 	strong(numerl:ipowm(B, T, N), N, S, B).
 
 fibonacci_test(N) -> fibonacci(num_lib:fibm(N - numerl:jacobi(N, 5), N)).
@@ -47,19 +46,24 @@ trial_div_test(N) -> trial_div(no_small_div_test(N), N).
 trial_div_test(N, List) -> trial_div_test(N, numerl:isqrt(N), List).
 
 % rabin miller primality testing
+rabin_miller_test(N) when N < 3_317_044_064_679_887_385_961_981 ->
+	rabin_miller_determinist(N);
 rabin_miller_test(N) -> rabin_miller_test(N, 20).
+
 rabin_miller_test(N, C) ->
-	S = num_util:p2(N - 1),
-	T = N bsr S,
+	{S, T} = split_even(N - 1),
 	r_m(N, T, S, C).
 
 % a probalistic test.
-is_prime(N) -> is_prime(N, 20).
-is_prime(N, _) when N < 103 ->
+is_prime(N) when N < 103 ->
 	lists:member(N,
 		[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67,
 			71, 73, 79, 83, 89, 97, 101]);
-is_prime(N, _) when N < 10609 -> no_small_div_test(N);
+is_prime(N) when N < 10609 -> no_small_div_test(N);
+is_prime(N) when N < 3_317_044_064_679_887_385_961_981 ->
+	rabin_miller_determinist(N);
+is_prime(N) -> is_prime(N, 20).
+
 is_prime(N, K) -> possible_prime(no_small_div_test(N), N, K).
 
 %%
@@ -75,6 +79,13 @@ witness_bool(false, B) -> {false, B}.
 strong(1, _, _, _) -> true;
 strong(Minus_1, N, _, _) when N - 1 =:= Minus_1 -> true;
 strong(A, N, S, B) -> witness_bool(strong(A, S - 1, N), B).
+
+strong(_, 0, _) -> false;
+strong(1, _, _) -> false;
+strong(B, S, N) -> strong_(B * B rem N, S, N).
+
+strong_(B2, _, N) when B2 =:= N - 1 -> true;
+strong_(B2, S, N) -> strong(B2, S - 1, N).
 
 fibonacci(0) -> true;
 fibonacci(_) -> false.
@@ -107,29 +118,44 @@ fib_and_fermat(N) -> fib_and_fermat(fermat_test(N, 2), N).
 fib_and_fermat(true, N) -> num_lib:fibm(N + 1, N) =:= 0;
 fib_and_fermat(Else, _) -> Else.
 
-% TODO: replace r_m2/4 by strong/3
+rabin_miller_determinist(N) ->
+	{S, T} = split_even(N - 1),
+	r_m_d(N, T, S, r_m_d_primes(N)).
+
+% cf https://miller-rabin.appspot.com/#records
+% I choose to use lists with the first element = 2 as testing with 2 is cheap
+% I also avoided very large bases when possible.
+r_m_d_primes(N) when N < 2_047 -> [2];
+r_m_d_primes(N) when N < 38_010_307  -> [2, 9_332_593];
+r_m_d_primes(N) when N < 109_134_866_497 -> [2, 45_650_740, 3_722_628_058];
+r_m_d_primes(N) when N < 47_636_622_961_201 ->
+	[2, 2_570_940, 211_991_001, 3_749_873_356];
+r_m_d_primes(N) when N < 3_770_579_582_154_547 ->
+	[2, 2_570_940, 880_937, 610_386_380, 4_130_785_767];
+r_m_d_primes(N) when N < 585_226_005_592_931_977 ->
+	[2, 123_635_709_730_000, 9_233_062_284_813_009, 43_835_965_440_333_360,
+		761_179_012_939_631_437, 1_263_739_024_124_850_375];
+r_m_d_primes(N) when N < 18_446_744_073_709_551_616 ->
+	[2, 325, 9_375, 28_178, 450_775, 9_780_504, 1_795_265_022];
+r_m_d_primes(N) when N < 318_665_857_834_031_151_167_461 ->
+	[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
+r_m_d_primes(N) when N < 3_317_044_064_679_887_385_961_981 ->
+	[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41].
+
 r_m(_, _, _, 0) -> true;
-r_m(N, Q, T, C) ->
-	A = rand:uniform(min(N - 1, ?N64)) + 1,
-	r_m(numerl:ipowm(A, Q, N), N, Q, T, C, A).
+r_m(N, T, S, C) ->
+	A = rand:uniform(min(N - 3, ?N64)) + 1,
+	case strong(numerl:ipowm(A, T, N), N, S, A) of
+		true -> r_m(N, T, S, C - 1);
+		Else -> Else
+	end.
 
-r_m(1, N, Q, T, C, _) -> r_m(N, Q, T, C - 1);
-r_m(B, N, Q, T, C, A) -> r_m_(r_m2(B, N, 0, T - 1), N, Q, T, C, A).
-
-r_m_(false, _, _, _, _, A) -> {false, A};
-r_m_(ok, N, Q, T, C, _) -> r_m(N, Q, T, C - 1).
-
-r_m2(1, _, _, _) -> false;
-r_m2(B, N, _, _) when B =:= N - 1 -> ok;
-r_m2(B, N, E, T) when E < T -> r_m2(numerl:ipowm(B, 2, N), N, E + 1, T);
-r_m2(_, _, _, _) -> false.
-
-strong(_, 0, _) -> false;
-strong(1, _, _) -> false;
-strong(B, S, N) -> strong_(B * B rem N, S, N).
-
-strong_(B2, _, N) when B2 =:= N - 1 -> true;
-strong_(B2, S, N) -> strong(B2, S - 1, N).
+r_m_d(_, _, _, []) -> true;
+r_m_d(N, T, S, [A | Tail]) ->
+	case strong(numerl:ipowm(A, T, N), N, S, A) of
+		true -> r_m_d(N, T, S, Tail);
+		Else -> Else
+	end.
 
 % Something wrong with my implementation of this test: it seems to always
 % returns false
@@ -147,3 +173,7 @@ trial_div_test(_, Lim, [H | _]) when H > Lim -> true;
 trial_div_test(N, Lim, [H | T]) when N rem H =/= 0 -> trial_div_test(N, Lim, T);
 trial_div_test(_, _, []) -> true;
 trial_div_test(_, _, [H | _]) -> {false, H}.
+
+split_even(N) ->
+	S = num_util:p2(N),
+	{S, N bsr S}.
