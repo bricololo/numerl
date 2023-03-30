@@ -2,18 +2,12 @@
 
 -export([init/1, next/1]).
 
-
-init([3, 5, 7 | Divs]) ->
-	Len = lists:foldl(fun(E, L) -> E * L end, 210, Divs),
-	Notches =
-		lists:merge(
-			[filter(P, Len, Divs) || P <- [11, 13, 17, 19, 23, 29, 31, 37]]),
-	{delta(Notches ++ [hd(Notches) + Len]), []};
-init(Divs) ->
-	Count = lists:foldl(fun(E, P) -> (E - 1) * P end, 1, Divs),
-	Seed = seed(Divs, Count + 1),
-	{delta(Seed), []}.
-
+init([2]) -> {[2], []};
+init([2 | Divs]) -> init(Divs);
+init([3]) -> {[2, 4], []};
+init([3 | Divs]) ->
+	{Notches, Len} = filter(Divs, [5, 7], 6),
+	{delta(Notches++[hd(Notches)+Len]), []}.
 
 next({[H | T], Acc}) -> {H, {T, [H | Acc]}};
 next({[], Acc}) -> next({lists:reverse(Acc), []}).
@@ -22,30 +16,14 @@ next({[], Acc}) -> next({lists:reverse(Acc), []}).
 %%% Implementation
 %%%
 
-seed(Divs, Count) ->
-	Start = lists:max(Divs) + 2,
-	seed(Divs, Start, 0, Count, []).
-
-seed(_, _, Count, Count, Acc) -> lists:reverse(Acc);
-seed(Divs, C, Length, Count, Acc) ->
-	{D_Length, N_Acc} = seed(C, check(Divs, C), Acc),
-	seed(Divs, C + 2, Length + D_Length, Count, N_Acc).
-
-seed(C, C, Acc) -> {1, [C | Acc]};
-seed(_, _, Acc) -> {0, Acc}.
-
-
-check([H | _], C) when (C rem H) =:= 0 -> 0;
-check([_ | T], C) -> check(T, C);
-check([], C) -> C.
-
-
 delta(L) when length(L) < 2 -> undefined;
 delta(L) -> delta(L, []).
 
-delta([F, S | _] = L, Acc) -> delta(tl(L), [S - F | Acc]);
+delta([F, S | _] = L, Acc) -> delta(tl(L), [S-F | Acc]);
 delta([_], Acc) -> lists:reverse(Acc).
 
-
-filter(P, L, T) ->
-	[X || X <- lists:seq(P, P - 1 + L, 30), X rem 7 =/= 0, check(T, X) =/= 0].
+filter([], List, Inc) -> {List, Inc};
+filter([P | Primes], List, Inc) ->
+	filter(Primes,
+		[V || I <- lists:seq(0, P-1), R <- List, V <- [I*Inc+R], V rem P =/= 0],
+		Inc*P).
