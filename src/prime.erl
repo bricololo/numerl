@@ -31,7 +31,7 @@ candidate({V, _}) -> V.
 
 next_candidate({V, Wheel}) ->
 	{Inc, W2} = wheel:next(Wheel),
-	{V + Inc, W2}.
+	{V+Inc, W2}.
 
 new_acc(Acc, N) -> ins(N, Acc).
 
@@ -40,10 +40,10 @@ result(Primes) when is_list(Primes) -> lists:reverse(Primes);
 result(Primes) -> Primes.
 
 fast_next({Mult, Prime, Wheel} = E, From) when Mult < From ->
-	Lim = 210 * Prime,
-	case From - Mult of
+	Lim = 210*Prime,
+	case From-Mult of
 		Small when Small < Lim -> fast_next(next(E), From);
-		Large -> fast_next({Mult + Lim * (Large div Lim), Prime, Wheel}, From)
+		Large -> fast_next({Mult+Lim*(Large div Lim), Prime, Wheel}, From)
 	end;
 fast_next(E, _) -> E.
 
@@ -54,9 +54,9 @@ fast_bump(Tree, Value, Next) -> pq_skew:bumpt(Tree, Value, Next).
 %
 
 start_from({Val, Wheel} = Lazy, From) ->
-	case From - Val of
+	case From-Val of
 		Small when Small < 210 -> start(Lazy, From);
-		Large -> start_from({Val + 210 * (Large div 210), Wheel}, From)
+		Large -> start_from({Val+210*(Large div 210), Wheel}, From)
 	end.
 
 init_stream_pq() -> pq_skew:new(fun next/1).
@@ -74,18 +74,20 @@ sieve(Comp, N, Lim, Primes, Wheel) ->
 	{Inc, Wheel2} = wheel:next(Wheel),
 	case pq_skew:val(Comp) of
 		% N is composite
-		N -> sieve(pq_skew:bump(Comp, N), N + Inc, Lim, Primes, Wheel2);
+		N -> sieve(pq_skew:bump(Comp, N), N+Inc, Lim, Primes, Wheel2);
 		% N is indeed prime we need to add the list of its multiple to Comp
-		_ -> sieve(pq_skew:add(Comp,np(N,Wheel)),N+Inc,Lim,ins(N,Primes),Wheel2)
+		_ ->
+			sieve(pq_skew:add(Comp, np(N, Wheel)), N+Inc, Lim, ins(N, Primes),
+				Wheel2)
 	end.
 
 % lazy list of composite multiples of Prime
-np(Prime, Wheel) -> {Prime * Prime, Prime, Wheel}.
+np(Prime, Wheel) -> {Prime*Prime, Prime, Wheel}.
 
 % tail of the lazy list
 next({Mult, Prime, Wheel}) ->
 	{Inc, Wheel2} = wheel:next(Wheel),
-	{Mult + Inc * Prime, Prime, Wheel2}.
+	{Mult+Inc*Prime, Prime, Wheel2}.
 
 % Acc handling
 ins(N, {_, _, From} = Result) when N < From -> Result;
@@ -98,4 +100,4 @@ ins(N, Primes) ->
 start({Val, _} = Start, Lim) when Val >= Lim -> Start;
 start({Val, Wheel}, Lim) ->
 	{Inc, Wheel2} = wheel:next(Wheel),
-	start({Val + Inc, Wheel2}, Lim).
+	start({Val+Inc, Wheel2}, Lim).

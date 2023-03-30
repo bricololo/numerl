@@ -72,7 +72,7 @@ power_test(N, P) ->
 	is_root(N, R, numerl:ipow(R, P)).
 
 parity_test(N, M) ->
-	case N band(1 bsl M - 1) of
+	case N band(1 bsl M-1) of
 		0 -> case num_util:p2(N) rem M of 0 -> true; _ -> false end;
 		_ -> false
 	end.
@@ -84,19 +84,19 @@ is_power(true, N, P) ->
 
 test(Val, Mod, List) ->
 	R = Val rem Mod,
-	T = min(R, Mod - R),
+	T = min(R, Mod-R),
 	lists:member(T, List).
 
 test_tuple(Val, Mod, Tuple) ->
 	R = Val rem Mod,
-	T =  1 + min(R, Mod - R),
+	T =  1+min(R, Mod-R),
 	element(T, Tuple).
 
 is_root(N, Root, N) -> {true, Root};
 is_root(_, _, _) -> false.
 
 adjust(V, D, P) when V rem D =/= 0 -> {V, P};
-adjust(V, D, P) -> adjust(V div D, D, P * D).
+adjust(V, D, P) -> adjust(V div D, D, P*D).
 
 -spec p2nd_test(N :: integer()) -> false | {true, integer()}.
 % @doc
@@ -124,13 +124,13 @@ odd_square(N, 1) -> square_mod_test(N);
 odd_square(_, _) -> false.
 
 square_mod_test(N) ->
-	% 3 051 123 075 = 225 * 247 * 253 * 217
+	% 3 051 123 075 = 225*247*253*217
 	T = N rem 3_051_123_075,
 	is_power(
-		square_test_bin(T, 225, t2(225)) andalso % 3 * 3 * 5 * 5
-		square_test(T, 247, t2(247)) andalso % 13 * 19
-		square_test(T, 253, t2(253)) andalso % 11 * 23
-		square_test(T, 217, t2(217)),        % 7 * 31
+		square_test_bin(T, 225, t2(225)) andalso % 3*3*5*5
+		square_test(T, 247, t2(247)) andalso % 13*19
+		square_test(T, 253, t2(253)) andalso % 11*23
+		square_test(T, 217, t2(217)),        % 7*31
 		N,
 		2).
 
@@ -157,17 +157,16 @@ t2(247) ->
 		168, 169, 172, 178, 182, 191, 194, 195, 196, 199, 207, 209, 218, 220,
 		225, 233, 234, 235, 237, 244];
 t2(253) ->
-		[0, 1, 3, 4, 9, 12, 16, 23, 25, 26, 27, 31, 36, 47, 48, 49, 55, 58, 59,
-			64, 69, 70, 71, 75, 77, 78, 81, 82, 92, 93, 100, 104, 108, 110, 115,
-			119, 121, 124, 133, 141, 144, 146, 147, 154, 163, 165, 169, 170,
-			174, 177, 179, 185, 187, 188, 190, 192, 196, 202, 207, 209, 210,
-			213, 220, 223, 225, 231, 232, 234, 236, 242, 243, 246];
+	[0, 1, 3, 4, 9, 12, 16, 23, 25, 26, 27, 31, 36, 47, 48, 49, 55, 58, 59, 64,
+		69, 70, 71, 75, 77, 78, 81, 82, 92, 93, 100, 104, 108, 110, 115, 119,
+		121, 124, 133, 141, 144, 146, 147, 154, 163, 165, 169, 170, 174, 177,
+		179, 185, 187, 188, 190, 192, 196, 202, 207, 209, 210, 213, 220, 223,
+		225, 231, 232, 234, 236, 242, 243, 246];
 t2(217) ->
-		[0, 1, 2, 4, 7, 8, 9, 14, 16, 18, 25, 28, 32, 35, 36, 39, 49, 50, 51,
-			56, 63, 64, 67, 70, 71, 72, 78, 81, 93, 95, 98, 100, 102, 107, 109,
-			112, 113, 121, 126, 128, 133, 134, 140, 142, 144, 149, 155, 156,
-			162, 163, 165, 169, 175, 183, 186, 190, 191, 193, 196, 200, 204,
-			205, 211, 214].
+	[0, 1, 2, 4, 7, 8, 9, 14, 16, 18, 25, 28, 32, 35, 36, 39, 49, 50, 51, 56,
+		63, 64, 67, 70, 71, 72, 78, 81, 93, 95, 98, 100, 102, 107, 109, 112,
+		113, 121, 126, 128, 133, 134, 140, 142, 144, 149, 155, 156, 162, 163,
+		165, 169, 175, 183, 186, 190, 191, 193, 196, 200, 204, 205, 211, 214].
 
 % @doc
 % a fast test. Try avoiding computing the cube root if not needed. Returns false
@@ -180,13 +179,13 @@ p3rd_test(N) when N < 8_000 ->
 				2_744, 3_375, 4_096, 4_913, 5_832, 6_859]),
 			N);
 p3rd_test(N) ->
-	% 6 411 132 = 252 * 247 * 103
+	% 6 411 132 = 252*247*103
 	T = N rem 6_411_132,
 	is_power(
-		element(1 + N band 7,
+		element(1+N band 7,
 			{true, true, false, true, false, true, false, true}) andalso
-		test_tuple(T, 252, t3(252)) andalso % 2 * 2 * 3 * 3 * 7
-		test(T, 247, t3(247)) andalso % 13 * 19
+		test_tuple(T, 252, t3(252)) andalso % 2*2*3*3*7
+		test(T, 247, t3(247)) andalso % 13*19
 		test(T, 103, t3(103)),        % 103 is prime
 		N,
 		3).
@@ -232,13 +231,13 @@ t3(247) -> [0,1,8,12,18,26,27,31,38,39,57,64,65,77,83,96,103,122];
 t3(103) -> [0, 1, 3, 8, 9, 10, 13, 14, 22, 23, 24, 27, 30, 31, 34, 37, 39, 42].
 
 p5th_test(N) ->
-	T = N rem (225 * 121 * 251 * 191 * 181),
+	T = N rem (225*121*251*191*181),
 	is_power(
-		test_tuple(T, 225, t5(225)) andalso % 3 * 3 * 5 * 5
-		test_tuple(T, 121, t5(121)) andalso % 11 * 11
-		test(T, 251, t5(251)) andalso % premier
-		test(T, 191, t5(191)) andalso % premier
-		test(T, 181, t5(181)),        % premier
+		test_tuple(T, 225, t5(225)) andalso % 3*3*5*5
+		test_tuple(T, 121, t5(121)) andalso % 11*11
+		test(T, 251, t5(251)) andalso % prime
+		test(T, 191, t5(191)) andalso % prime
+		test(T, 181, t5(181)),        % prime
 		N,
 		5).
 
@@ -313,12 +312,12 @@ t5(191) -> [0,1,5,6,11,14,25,30,31,32,36,37,38,41,52,55,66,69,70,84];
 t5(181) -> [0,1,7,17,19,26,32,39,43,48,49,61,62,65,72,73,80,88,89].
 
 p7th_test(N) ->
-	T = N rem (49 * 239 * 211 * 197),
+	T = N rem (49*239*211*197),
 	is_power(
-		test_tuple(T, 49, t7(49))   andalso % 7 * 7
-		test(T, 239, t7(239)) andalso % premier
-		test(T, 211, t7(211)) andalso % premier
-		test(T, 197, t7(197)),        % premier
+		test_tuple(T, 49, t7(49))   andalso % 7*7
+		test(T, 239, t7(239)) andalso % prime
+		test(T, 211, t7(211)) andalso % prime
+		test(T, 197, t7(197)),        % prime
 		N,
 		7).
 
@@ -338,12 +337,12 @@ t7(211) -> [0,1,10,14,15,19,21,23,55,61,71,74,77,83,100,104,107];
 t7(197) -> [0, 1, 6, 14, 19, 20, 33, 36, 68, 69, 77, 83, 84, 87, 93].
 
 p11th_test(N) ->
-	T = N rem (121 * 199 * 89 * 207),
+	T = N rem (121*199*89*207),
 	is_power(
-		test_tuple(T, 121, t11(121)) andalso % 11 * 11
-		test(T, 199, t11(199)) andalso % premier
-		test(T, 89, t11(89))   andalso % premier
-		test(T, 207, t11(207)),        % 3 * 3 * 23
+		test_tuple(T, 121, t11(121)) andalso % 11*11
+		test(T, 199, t11(199)) andalso % prime
+		test(T, 89, t11(89))   andalso % prime
+		test(T, 207, t11(207)),        % 3*3*23
 		N,
 		11).
 

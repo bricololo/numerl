@@ -14,7 +14,7 @@ log2_est(N) when N < 256 -> log2_bin(N);
 log2_est(N) ->
 	BN = binary:encode_unsigned(N),
 	<<H:8, _/binary>> = BN,
-	byte_size(BN) bsl 3 - 8 + log2_bin(H).
+	byte_size(BN) bsl 3-8+log2_bin(H).
 
 % the largest power of 2 dividing N
 p2(0) -> 0; % by convention, infinity would also makes sense
@@ -34,31 +34,31 @@ hamming(N) -> hamming_bin(binary:encode_unsigned(N), 0).
 log2_bin(N) when N > 15 -> log2_bin_l(N);
 log2_bin(N) -> log2_bin_s(N).
 
-log2_bin_l(N) when N > 63 -> (N band 128) bsr 7 + 7;
-log2_bin_l(N) -> (N band 32) bsr 5 + 5.
+log2_bin_l(N) when N > 63 -> (N band 128) bsr 7+7;
+log2_bin_l(N) -> (N band 32) bsr 5+5.
 
-log2_bin_s(N) when N > 3 -> (N band 8) bsr 3 + 3;
+log2_bin_s(N) when N > 3 -> (N band 8) bsr 3+3;
 log2_bin_s(0) -> 0;
-log2_bin_s(N) -> (N band 2) bsr 1 + 1.
+log2_bin_s(N) -> (N band 2) bsr 1+1.
 
 p2(N, Acc) -> p2(N, Acc, N band 16#ffff_ffff_ffff_ffff).
 
-p2(N, Acc, 0) -> p2(N bsr 64, Acc + 64);
-p2(_, Acc, V) -> Acc + p2_64(V).
+p2(N, Acc, 0) -> p2(N bsr 64, Acc+64);
+p2(_, Acc, V) -> Acc+p2_64(V).
 
 p2_64(N) ->
 	lists:nth(
-		(N bxor (N - 1)) rem 67, % the remainder can't be 0, 33 or 66
+		(N bxor (N-1)) rem 67, % the remainder can't be 0, 33 or 66
 		[0,38,1,14,39,22,2,11,15,58,40,18,23,53,3,63,12,9,16,61,59,27,41,29,19,
 		50,24,43,54,46,4,31,bad,37,13,21,10,57,17,52,62,8,60,26,28,49,42,45,30,
 		36,20,56,51,7,25,48,44,35,55,6,47,34,5,33,32]).
 
-hamming28(N) -> hamm14(N band 16#3fff) + hamm14((N band 16#fffc000) bsr 14).
+hamming28(N) -> hamm14(N band 16#3fff)+hamm14((N band 16#fffc000) bsr 14).
 
-hamm14(N) -> ((N * 16#200040008001) band 16#111111111111111) rem 15.
+hamm14(N) -> ((N*16#200040008001) band 16#111111111111111) rem 15.
 
 hamming_bin(<<A:14, B:14, C:14, D:14, Bin/binary>>, P) ->
-	hamming_bin(Bin, P + hamm14(A) + hamm14(B) + hamm14(C) + hamm14(D));
+	hamming_bin(Bin, P+hamm14(A)+hamm14(B)+hamm14(C)+hamm14(D));
 hamming_bin(<<A:4, B:14, C:14, Bin/binary>>, P) ->
-	hamming_bin(Bin, P + hamm14(A) + hamm14(B) + hamm14(C));
-hamming_bin(Bin, P) -> P + hamming28(binary:decode_unsigned(Bin)).
+	hamming_bin(Bin, P+hamm14(A)+hamm14(B)+hamm14(C));
+hamming_bin(Bin, P) -> P+hamming28(binary:decode_unsigned(Bin)).

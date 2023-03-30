@@ -54,7 +54,7 @@ init(Primes, _) when is_list(Primes) -> ok;
 init(Primes, P_list) -> ets:insert(Primes, [{P} || P <- P_list]).
 
 first([23 | _]) -> 29;
-first([H | _]) when H < 31 -> H + 5 - (H rem 6 + 1) div 2.
+first([H | _]) when H < 31 -> H+5-(H rem 6+1) div 2.
 
 % Comp is a priority queue of known composites
 % N is a prime candidate
@@ -71,7 +71,7 @@ sieve(Comp, N, P_lim, Lim, Primes, Wheel) when N > P_lim ->
 sieve(Comp, N, P_lim, Lim, Primes, Wheel) ->
 	{N_comp, N_primes} = if_prime(Comp, N, Primes, Wheel),
 	{Inc, Wheel2} = wheel:next(Wheel),
-	sieve(N_comp, N + Inc, P_lim, Lim, N_primes, Wheel2).
+	sieve(N_comp, N+Inc, P_lim, Lim, N_primes, Wheel2).
 
 if_prime(Comp, N, Primes, Wheel) ->
 	if_prime(Comp, N, Primes, Wheel, pq_heap:val(Comp)).
@@ -85,7 +85,7 @@ if_prime(Comp, N, Primes, Wheel, _) -> % N is prime
 sieve(Comp, N, Lim, Primes, Wheel) when N =< Lim ->
 	{N_comp, N_primes} = if_prime(Comp, N, Primes, Wheel),
 	{Inc, Wheel2} = wheel:next(Wheel),
-	sieve(N_comp, N + Inc, Lim, N_primes, Wheel2);
+	sieve(N_comp, N+Inc, Lim, N_primes, Wheel2);
 sieve(_, _, _, {_, Acc}, _) -> Acc;
 sieve(_, _, _, Primes, _) when is_list(Primes) -> lists:reverse(Primes);
 sieve(_, _, _, Primes, _) -> Primes.
@@ -97,9 +97,9 @@ ins(N, Primes) ->
 	Primes.
 
 % lazy list of composites multiple of Prime
-np(Prime, Wheel) -> {Prime * Prime, Wheel, Prime}.
+np(Prime, Wheel) -> {Prime*Prime, Wheel, Prime}.
 
 % tail of the lazy list
 next({Mult, Wheel, Prime}) ->
 	{Inc, W2} = wheel:next(Wheel),
-	{Prime * Inc + Mult, W2, Prime}.
+	{Prime*Inc+Mult, W2, Prime}.
